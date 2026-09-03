@@ -1,10 +1,12 @@
 import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useLenis } from './hooks/useLenis';
 import Navbar from './components/Navbar';
 import AudioController from './components/AudioController';
 import FilmGrain from './components/FilmGrain';
 import CustomCursor from './components/CustomCursor';
 
+// Story Sections
 import Intro from './sections/Intro';
 import BirthdayReveal from './sections/BirthdayReveal';
 import FirstMeeting from './sections/FirstMeeting';
@@ -12,11 +14,18 @@ import Timeline from './sections/Timeline';
 import HyderabadCTF from './sections/HyderabadCTF';
 import Memories from './sections/Memories';
 import LoveAboutYou from './sections/LoveAboutYou';
+import BirthdayWishes from './sections/BirthdayWishes';
 import LoveLetter from './sections/LoveLetter';
 import Finale from './sections/Finale';
 
-export default function App() {
-  // Initialize Lenis smooth scroll
+// Pages
+import WishSubmissionPage from './pages/WishSubmissionPage';
+import WishesWallPage from './pages/WishesWallPage';
+import AdminLoginPage from './pages/AdminLoginPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
+
+function HomeStory() {
+  // Initialize Lenis smooth scroll for homepage story
   useLenis();
 
   return (
@@ -29,7 +38,7 @@ export default function App() {
       <Navbar />
       <AudioController />
 
-      {/* 10 Story Sections */}
+      {/* Main 10 Story Sections */}
       <main className="relative z-10 w-full overflow-hidden">
         {/* Section 01 — Movie Opening Intro */}
         <Intro />
@@ -52,12 +61,29 @@ export default function App() {
         {/* Section 08 — Things I Love About You */}
         <LoveAboutYou />
 
-        {/* Section 09 — Progressive Love Letter */}
+        {/* Section 09 — Community Birthday Wishes */}
+        <BirthdayWishes />
+
+        {/* Section 10 — Progressive Love Letter */}
         <LoveLetter />
 
-        {/* Section 10 — Grand Finale Celebration */}
+        {/* Section 11 — Grand Finale Celebration */}
         <Finale />
       </main>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<HomeStory />} />
+        <Route path="/wish" element={<WishSubmissionPage />} />
+        <Route path="/wishes" element={<WishesWallPage />} />
+        <Route path="/admin/login" element={<AdminLoginPage />} />
+        <Route path="/admin" element={<AdminDashboardPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }

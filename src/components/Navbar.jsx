@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { Heart, Code, Sparkles, Menu, X, Terminal, ChevronRight, Compass } from 'lucide-react';
 import gsap from 'gsap';
 
@@ -19,8 +20,9 @@ export default function Navbar() {
     { id: 'timeline-section', label: '03. Journey', short: 'Journey' },
     { id: 'hyderabad-ctf-section', label: '04. CTF Memory', short: 'CTF', icon: Code, isCyber: true },
     { id: 'memories-section', label: '05. Memories', short: 'Memories' },
-    { id: 'love-letter-section', label: '06. Letter', short: 'Letter' },
-    { id: 'finale-section', label: '07. Finale', short: 'Finale' },
+    { id: 'birthday-wishes-section', label: '06. Wishes', short: 'Wishes' },
+    { id: 'love-letter-section', label: '07. Letter', short: 'Letter' },
+    { id: 'finale-section', label: '08. Finale', short: 'Finale' },
   ];
 
   // GSAP Entrance animation on mount
@@ -274,6 +276,14 @@ export default function Navbar() {
 
           {/* Right Badge & Mobile Toggle */}
           <div className="flex items-center gap-2 shrink-0 ml-3">
+            <Link
+              to="/wish"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#B76E79]/20 hover:bg-[#B76E79]/30 border border-[#B76E79]/40 text-[#E89CA7] text-xs font-mono transition-all duration-300 whitespace-nowrap"
+            >
+              <Heart className="w-3 h-3 fill-current" />
+              <span>Send Wish</span>
+            </Link>
+
             <div
               className={`hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-mono transition-all duration-300 whitespace-nowrap ${
                 isCyberTheme
