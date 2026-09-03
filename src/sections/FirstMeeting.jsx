@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Calendar, Heart, Sparkles, Handshake, Zap } from 'lucide-react';
+import HandshakeAnim from '../components/HandshakeAnim';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -10,6 +11,7 @@ export default function FirstMeeting() {
   const blueBgRef = useRef(null);
   const darkOverlayRef = useRef(null);
 
+  const handshakeStageRef = useRef(null);
   const step1Ref = useRef(null);
   const step2Ref = useRef(null);
   const step3Ref = useRef(null);
@@ -22,19 +24,27 @@ export default function FirstMeeting() {
         scrollTrigger: {
           trigger: containerRef.current,
           start: 'top top',
-          end: '+=400%',
+          end: '+=420%',
           scrub: 1.2,
           pin: true,
         },
       });
 
-      // --- SCROLL 1: "I still remember that day." ---
+      // --- STEP 0: Handshake Vector Animation Entrance ---
       tl.fromTo(
+        handshakeStageRef.current,
+        { opacity: 0, scale: 0.8, y: 30 },
+        { opacity: 1, scale: 1, y: 0, duration: 1.2, ease: 'power2.out' }
+      )
+      .to(handshakeStageRef.current, { opacity: 0, y: -30, duration: 0.8 }, '+=1')
+
+      // --- SCROLL 1: Title & "I still remember that day." ---
+      .fromTo(
         step1Ref.current,
         { opacity: 0, scale: 0.9, y: 30 },
         { opacity: 1, scale: 1, y: 0, duration: 1.2 }
       )
-      .to(step1Ref.current, { opacity: 0, y: -30, duration: 0.8 }, '+=1')
+      .to(step1Ref.current, { opacity: 0, y: -30, duration: 0.8 }, '+=1.2')
 
       // --- SCROLL 2: Blue-toned visual reveal & "The blue chudithar." ---
       .to(
@@ -49,7 +59,7 @@ export default function FirstMeeting() {
       )
       .to(step2Ref.current, { opacity: 0, y: -30, filter: 'blur(10px)', duration: 0.8 }, '+=1')
 
-      // --- SCROLL 3: "That little wound on your finger." ---
+      // --- SCROLL 3: "That little wound on your right hand pinky finger." ---
       .fromTo(
         step3Ref.current,
         { opacity: 0, y: 30, filter: 'blur(10px)' },
@@ -109,8 +119,13 @@ export default function FirstMeeting() {
       {/* Main Story Stage */}
       <div className="relative z-20 max-w-4xl mx-auto px-6 flex flex-col items-center justify-center min-h-[60vh] w-full">
         
+        {/* --- STEP 0: Handshake Vector Illustration Animation Stage --- */}
+        <div ref={handshakeStageRef} className="absolute w-full opacity-0 z-20">
+          <HandshakeAnim />
+        </div>
+
         {/* --- SCROLL 1: Intro --- */}
-        <div ref={step1Ref} className="absolute space-y-6 opacity-0">
+        <div ref={step1Ref} className="absolute space-y-6 opacity-0 z-20">
           <div className="inline-block font-mono text-xs sm:text-sm text-[#B76E79] tracking-[0.4em] uppercase">
             04 . 09 . 2025
           </div>
@@ -135,21 +150,21 @@ export default function FirstMeeting() {
           </h1>
         </div>
 
-        {/* --- SCROLL 3: That little wound on your finger --- */}
+        {/* --- SCROLL 3: That little wound on your right hand pinky finger --- */}
         <div ref={step3Ref} className="absolute space-y-4 opacity-0 z-20">
           <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full glass-panel border border-[#E89CA7]/40 text-xs font-mono text-[#E89CA7] uppercase tracking-wider">
             <Sparkles className="w-3.5 h-3.5 animate-spin text-[#B76E79]" />
             A detail that stayed forever
           </div>
           <h2 className="font-serif-cinematic text-3xl sm:text-6xl font-semibold text-[#F5F1EA] italic drop-shadow-2xl">
-            “That little wound on your finger.”
+            “That little wound on your right hand pinky finger.”
           </h2>
         </div>
 
         {/* --- SCROLL 4: And that very first handshake --- */}
         <div ref={step4Ref} className="absolute space-y-6 opacity-0 z-20">
-          <div className="w-16 h-16 rounded-full glass-panel border border-white/20 flex items-center justify-center mx-auto text-[#B76E79] shadow-2xl animate-pulse">
-            <Handshake className="w-8 h-8" />
+          <div className="w-20 h-20 rounded-full glass-panel border border-[#B76E79] flex items-center justify-center mx-auto text-[#E89CA7] shadow-2xl animate-bounce bg-[#B76E79]/20">
+            <Handshake className="w-10 h-10 text-[#E89CA7]" />
           </div>
           <h1 className="font-serif-cinematic text-3xl sm:text-7xl font-bold text-white tracking-wide drop-shadow-2xl">
             “And that very first handshake.”
