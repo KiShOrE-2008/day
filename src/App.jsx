@@ -6,6 +6,15 @@ import AudioController from './components/AudioController';
 import FilmGrain from './components/FilmGrain';
 import CustomCursor from './components/CustomCursor';
 
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import ErrorBoundary from './components/ErrorBoundary';
+
+gsap.registerPlugin(ScrollTrigger);
+if (typeof window !== 'undefined') {
+  window.ScrollTrigger = ScrollTrigger;
+}
+
 // Story Sections
 import Intro from './sections/Intro';
 import BirthdayReveal from './sections/BirthdayReveal';
@@ -104,14 +113,16 @@ function HomeStory() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<HomeStory />} />
-        <Route path="/wish" element={<WishSubmissionPage />} />
-        <Route path="/wishes" element={<WishesWallPage />} />
-        <Route path="/admin/login" element={<AdminLoginPage />} />
-        <Route path="/admin" element={<AdminDashboardPage />} />
-      </Routes>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<HomeStory />} />
+          <Route path="/wish" element={<WishSubmissionPage />} />
+          <Route path="/wishes" element={<WishesWallPage />} />
+          <Route path="/admin/login" element={<AdminLoginPage />} />
+          <Route path="/admin" element={<AdminDashboardPage />} />
+        </Routes>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }

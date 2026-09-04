@@ -30,7 +30,19 @@ html, body {
   font-family: var(--font-sans);
   overflow-x: hidden;
   width: 100%;
+  min-height: 100vh;
   scroll-behavior: auto; /* Handled by Lenis */
+}
+
+/* Fullscreen mode background & viewport fix */
+:fullscreen,
+:-webkit-full-screen,
+:-moz-full-screen,
+:-ms-fullscreen {
+  background-color: #080808 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  overflow-y: auto !important;
 }
 
 /* Custom Scrollbar */

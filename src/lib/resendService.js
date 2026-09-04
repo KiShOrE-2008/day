@@ -9,8 +9,8 @@ export async function sendResendThankYouEmail({
   replyMessage,
   originalMessage,
 }) {
-  if (!toEmail) {
-    throw new Error('Recipient email address is missing.');
+  if (!toEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(toEmail.trim())) {
+    throw new Error('Valid recipient email address is required.');
   }
 
   if (!RESEND_API_KEY) {
@@ -66,26 +66,40 @@ export async function sendResendThankYouEmail({
 
   const payload = {
     from: 'Sowmiyaa Birthday <onboarding@resend.dev>',
-    to: [toEmail],
+    to: [toEmail.trim()],
     subject: `Thank you for the birthday wish! ❤️ — Sowmiyaa`,
     html: htmlContent,
   };
 
-  const response = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${RESEND_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 sec timeout
 
-  const resData = await response.json().catch(() => ({}));
+  try {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
 
-  if (!response.ok) {
-    console.error('Resend API error response:', resData);
-    throw new Error(resData.message || resData.name || 'Failed to send email via Resend API.');
+    clearTimeout(timeoutId);
+    const resData = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      console.error('Resend API error response:', resData);
+      const errDetail = resData.message || resData.name || `HTTP ${response.status} error`;
+      throw new Error(`Email delivery failed: ${errDetail}`);
+    }
+
+    return { success: true, data: resData };
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      throw new Error('Email request timed out. Please check your internet connection.');
+    }
+    throw err;
   }
-
-  return { success: true, data: resData };
 }

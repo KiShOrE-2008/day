@@ -1,11 +1,41 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Volume2, VolumeX, Music, Sparkles, Sliders, ChevronUp, Radio } from 'lucide-react';
+import { Volume2, VolumeX, Music, Sparkles, Sliders, ChevronUp, Radio, Maximize2, Minimize2 } from 'lucide-react';
 
 export default function AudioController() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.5);
   const [preset, setPreset] = useState('romantic'); // 'romantic', 'celestial', 'cyber'
   const [showControls, setShowControls] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isFS = Boolean(document.fullscreenElement);
+      setIsFullscreen(isFS);
+
+      // Recalculate ScrollTrigger pin heights after fullscreen transition
+      setTimeout(() => {
+        window.dispatchEvent(new Event('resize'));
+        if (window.ScrollTrigger) {
+          window.ScrollTrigger.refresh();
+        }
+      }, 150);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const toggleFullScreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((err) => {
+        console.error(`Fullscreen request failed: ${err.message}`);
+      });
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  };
 
   const audioContextRef = useRef(null);
   const masterGainRef = useRef(null);
@@ -251,6 +281,24 @@ export default function AudioController() {
             <ChevronUp className={`w-3.5 h-3.5 text-white/50 transition-transform ${showControls ? 'rotate-180' : ''}`} />
           </div>
         )}
+
+        {/* Fullscreen Toggle Button */}
+        <button
+          onClick={toggleFullScreen}
+          className={`p-3 rounded-full glass-panel border transition-all duration-300 ${
+            isFullscreen
+              ? 'border-[#B76E79]/50 text-[#E89CA7] bg-[#B76E79]/15 shadow-lg shadow-[#B76E79]/20'
+              : 'border-white/15 text-white/70 hover:text-white hover:border-white/30'
+          }`}
+          aria-label={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+          title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+        >
+          {isFullscreen ? (
+            <Minimize2 className="w-4 h-4 text-[#E89CA7]" />
+          ) : (
+            <Maximize2 className="w-4 h-4" />
+          )}
+        </button>
 
         {/* Controls Toggle Pill */}
         <button

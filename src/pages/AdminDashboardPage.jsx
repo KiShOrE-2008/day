@@ -80,13 +80,23 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const [toast, setToast] = useState(null); // { type: 'success' | 'error', message: string }
+
+  const showToast = (type, message) => {
+    setToast({ type, message });
+    setTimeout(() => {
+      setToast(null);
+    }, 4000);
+  };
+
   // 3. Actions
   const handleApprove = async (id) => {
     try {
       await approveWish(id);
+      showToast('success', 'Wish approved for public wall! ❤️');
       loadWishes();
     } catch (err) {
-      alert(err.message);
+      showToast('error', err.message || 'Failed to approve wish.');
     }
   };
 
@@ -94,27 +104,30 @@ export default function AdminDashboardPage() {
     if (!window.confirm('Are you sure you want to reject & delete this wish?')) return;
     try {
       await rejectWish(id);
+      showToast('success', 'Wish deleted.');
       loadWishes();
     } catch (err) {
-      alert(err.message);
+      showToast('error', err.message || 'Failed to delete wish.');
     }
   };
 
   const handleToggleFeatured = async (id, currentState) => {
     try {
       await toggleFeaturedWish(id, !currentState);
+      showToast('success', !currentState ? 'Marked as featured wish! ✨' : 'Removed from featured list.');
       loadWishes();
     } catch (err) {
-      alert(err.message);
+      showToast('error', err.message || 'Failed to update featured state.');
     }
   };
 
   const handleSendReply = async (id, replyMessage) => {
     try {
       await sendThankYouEmail(id, replyMessage);
+      showToast('success', 'Thank-you email sent successfully! 📧❤️');
       loadWishes();
     } catch (err) {
-      alert(err.message);
+      showToast('error', err.message || 'Failed to send thank-you email.');
     }
   };
 
@@ -139,9 +152,10 @@ export default function AdminDashboardPage() {
         approved: editingWish.approved,
       });
       setEditingWish(null);
+      showToast('success', 'Wish details updated successfully! ✨');
       loadWishes();
     } catch (err) {
-      alert(err.message);
+      showToast('error', err.message || 'Failed to save changes.');
     }
   };
 
@@ -606,6 +620,24 @@ export default function AdminDashboardPage() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Floating Toast Notification */}
+      {toast && (
+        <div
+          className={`fixed bottom-6 right-6 z-50 max-w-sm p-4 rounded-2xl border shadow-2xl backdrop-blur-xl flex items-center gap-3 transition-all ${
+            toast.type === 'success'
+              ? 'bg-[#121212]/95 border-[#B76E79]/40 text-[#F5F1EA]'
+              : 'bg-red-950/90 border-red-500/40 text-red-200'
+          }`}
+        >
+          <div
+            className={`w-3 h-3 rounded-full shrink-0 ${
+              toast.type === 'success' ? 'bg-[#B76E79] animate-pulse' : 'bg-red-500'
+            }`}
+          />
+          <p className="text-xs font-mono">{toast.message}</p>
         </div>
       )}
     </div>
