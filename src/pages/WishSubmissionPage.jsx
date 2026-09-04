@@ -102,7 +102,7 @@ export default function WishSubmissionPage() {
       {/* Top Header Navigation */}
       <header className="relative z-20 max-w-xl mx-auto w-full flex items-center justify-between mb-8">
         <Link
-          to="/"
+          to="/#birthday-wishes-section"
           className="inline-flex items-center gap-2 text-sm text-[#F5F1EA]/60 hover:text-[#B76E79] transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -136,7 +136,7 @@ export default function WishSubmissionPage() {
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
-                to="/"
+                to="/#birthday-wishes-section"
                 className="w-full sm:w-auto px-6 py-3 rounded-full bg-[#B76E79] hover:bg-[#A35D68] text-white font-medium text-sm transition-all shadow-lg hover:shadow-[#B76E79]/30"
               >
                 Return to Story

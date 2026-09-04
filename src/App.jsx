@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { useLenis } from './hooks/useLenis';
 import Navbar from './components/Navbar';
 import AudioController from './components/AudioController';
@@ -27,6 +27,22 @@ import AdminDashboardPage from './pages/AdminDashboardPage';
 function HomeStory() {
   // Initialize Lenis smooth scroll for homepage story
   useLenis();
+  const location = useLocation();
+
+  // Scroll to targeted section if hash exists (e.g. /#birthday-wishes-section)
+  useEffect(() => {
+    const hash = location.hash || window.location.hash;
+    if (hash) {
+      const targetId = hash.replace('#', '');
+      const timer = setTimeout(() => {
+        const elem = document.getElementById(targetId);
+        if (elem) {
+          elem.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 400);
+      return () => clearTimeout(timer);
+    }
+  }, [location]);
 
   return (
     <div className="relative min-h-screen bg-[#080808] text-[#F5F1EA] selection:bg-[#B76E79]/30 selection:text-white">

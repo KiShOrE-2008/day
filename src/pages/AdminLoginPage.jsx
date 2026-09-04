@@ -43,7 +43,7 @@ export default function AdminLoginPage() {
       {/* Navigation */}
       <div className="max-w-md mx-auto w-full flex items-center justify-between">
         <Link
-          to="/"
+          to="/#birthday-wishes-section"
           className="inline-flex items-center gap-2 text-sm text-[#F5F1EA]/60 hover:text-[#B76E79] transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
