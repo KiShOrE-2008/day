@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Lock, Mail, Key, ShieldCheck, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Lock, Mail, Key, ShieldCheck, Heart, AlertCircle, ArrowLeft, Sparkles } from 'lucide-react';
 import { signInAdmin, getAdminSession } from '../lib/wishesService';
 import { isSupabaseConfigured } from '../lib/supabase';
 
 export default function AdminLoginPage() {
-  const [email, setEmail] = useState('');
+  const [role, setRole] = useState('sowmiya'); // 'sowmiya' | 'admin'
+  const [email, setEmail] = useState('sowmiya@miyaaaaww.com');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -19,6 +20,16 @@ export default function AdminLoginPage() {
       }
     });
   }, [navigate]);
+
+  const handleRoleSwitch = (selectedRole) => {
+    setRole(selectedRole);
+    setError(null);
+    if (selectedRole === 'sowmiya') {
+      setEmail('sowmiya@miyaaaaww.com');
+    } else {
+      setEmail('admin@miyaaaaww.com');
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -52,20 +63,75 @@ export default function AdminLoginPage() {
       </div>
 
       <div className="max-w-md mx-auto w-full">
+        {/* Role Selection Switcher */}
+        <div className="flex bg-[#161616] p-1.5 rounded-2xl border border-white/10 mb-5 shadow-lg">
+          <button
+            type="button"
+            onClick={() => handleRoleSwitch('sowmiya')}
+            className={`flex-1 py-3 rounded-xl text-xs font-semibold tracking-wider flex items-center justify-center gap-2 transition-all ${
+              role === 'sowmiya'
+                ? 'bg-gradient-to-r from-[#B76E79] to-[#D4A373] text-white shadow-md'
+                : 'text-[#F5F1EA]/50 hover:text-[#F5F1EA]'
+            }`}
+          >
+            <Heart className={`w-4 h-4 ${role === 'sowmiya' ? 'fill-white' : ''}`} />
+            <span>Sowmiya's Inbox</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleRoleSwitch('admin')}
+            className={`flex-1 py-3 rounded-xl text-xs font-semibold tracking-wider flex items-center justify-center gap-2 transition-all ${
+              role === 'admin'
+                ? 'bg-white/15 text-white shadow-md border border-white/20'
+                : 'text-[#F5F1EA]/50 hover:text-[#F5F1EA]'
+            }`}
+          >
+            <ShieldCheck className="w-4 h-4" />
+            <span>System Admin</span>
+          </button>
+        </div>
+
         <div className="bg-[#121212]/90 border border-white/10 rounded-3xl p-8 backdrop-blur-xl shadow-2xl">
           <div className="text-center mb-8">
-            <div className="w-14 h-14 bg-[#B76E79]/20 text-[#B76E79] rounded-2xl flex items-center justify-center mx-auto mb-4 border border-[#B76E79]/30 shadow-inner">
-              <ShieldCheck className="w-7 h-7" />
+            <div
+              className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 border shadow-inner transition-all ${
+                role === 'sowmiya'
+                  ? 'bg-[#B76E79]/20 text-[#B76E79] border-[#B76E79]/40'
+                  : 'bg-white/10 text-amber-400 border-white/20'
+              }`}
+            >
+              {role === 'sowmiya' ? (
+                <Sparkles className="w-7 h-7 text-[#B76E79]" />
+              ) : (
+                <ShieldCheck className="w-7 h-7 text-amber-400" />
+              )}
             </div>
-            <h1 className="text-2xl font-serif text-[#F5F1EA]">Admin Authorization</h1>
+
+            <h1 className="text-2xl font-serif text-[#F5F1EA]">
+              {role === 'sowmiya' ? "Sowmiya's Private Inbox ❤️" : 'Admin Authorization'}
+            </h1>
             <p className="text-xs text-[#F5F1EA]/60 mt-1">
-              Authenticate to access Sowmiya's wish moderation panel
+              {role === 'sowmiya'
+                ? 'Welcome Birthday Girl! Log in to view wishes & reply thank you.'
+                : 'Authenticate to access full site moderation & wish controls'}
             </p>
           </div>
 
           {!isLive && (
-            <div className="mb-6 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs leading-relaxed">
-              💡 <strong>Dev Mode Notice:</strong> Supabase env vars not detected. You can log in using dev credentials: <code className="bg-black/40 px-1 py-0.5 rounded font-mono">admin@miyaaaaww.com</code> / <code className="bg-black/40 px-1 py-0.5 rounded font-mono">admin123</code>.
+            <div className="mb-6 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs leading-relaxed">
+              💡 <strong>Dev Mode Credentials:</strong>
+              <div className="mt-1 font-mono text-[11px] text-amber-200/90">
+                {role === 'sowmiya' ? (
+                  <>
+                    Email: <code className="bg-black/40 px-1.5 py-0.5 rounded text-white">sowmiya@miyaaaaww.com</code> | Password: <code className="bg-black/40 px-1.5 py-0.5 rounded text-white">sowmiya123</code>
+                  </>
+                ) : (
+                  <>
+                    Email: <code className="bg-black/40 px-1.5 py-0.5 rounded text-white">admin@miyaaaaww.com</code> | Password: <code className="bg-black/40 px-1.5 py-0.5 rounded text-white">admin123</code>
+                  </>
+                )}
+              </div>
             </div>
           )}
 
@@ -79,14 +145,14 @@ export default function AdminLoginPage() {
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
               <label className="block text-xs font-mono uppercase tracking-wider text-[#F5F1EA]/70 mb-2">
-                Admin Email
+                {role === 'sowmiya' ? 'Sowmiya Email' : 'Admin Email'}
               </label>
               <div className="relative">
                 <Mail className="w-4 h-4 absolute left-3.5 top-3.5 text-[#F5F1EA]/40" />
                 <input
                   type="email"
                   required
-                  placeholder="admin@example.com"
+                  placeholder={role === 'sowmiya' ? 'sowmiya@miyaaaaww.com' : 'admin@example.com'}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-[#F5F1EA] placeholder:text-[#F5F1EA]/30 focus:outline-none focus:border-[#B76E79] text-sm"
@@ -114,14 +180,20 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 rounded-xl bg-[#B76E79] hover:bg-[#A35D68] text-white font-medium text-sm transition-all shadow-lg hover:shadow-[#B76E79]/30 disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
+              className={`w-full py-3.5 rounded-xl font-medium text-sm transition-all shadow-lg disabled:opacity-50 flex items-center justify-center gap-2 mt-2 ${
+                role === 'sowmiya'
+                  ? 'bg-gradient-to-r from-[#B76E79] to-[#D4A373] hover:opacity-95 text-white shadow-[#B76E79]/30'
+                  : 'bg-[#B76E79] hover:bg-[#A35D68] text-white shadow-[#B76E79]/30'
+              }`}
             >
               {loading ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
                   <Lock className="w-4 h-4" />
-                  <span>LOG IN TO ADMIN PANEL</span>
+                  <span>
+                    {role === 'sowmiya' ? 'OPEN SOWMIYA INBOX ❤️' : 'LOG IN TO ADMIN PANEL 🛡️'}
+                  </span>
                 </>
               )}
             </button>
@@ -130,7 +202,7 @@ export default function AdminLoginPage() {
       </div>
 
       <footer className="text-center text-xs text-[#F5F1EA]/40">
-        Protected Admin Access
+        Protected Authorization Access
       </footer>
     </div>
   );

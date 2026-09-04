@@ -6,6 +6,7 @@ import { validateImageFile } from '../lib/imageCompressor';
 
 export default function WishSubmissionPage() {
   const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [relationship, setRelationship] = useState('');
   const [message, setMessage] = useState('');
   const [photoFile, setPhotoFile] = useState(null);
@@ -54,10 +55,16 @@ export default function WishSubmissionPage() {
 
     // Front-end trim validation
     const cleanName = name.trim();
+    const cleanEmail = email.trim();
     const cleanMsg = message.trim();
 
     if (!cleanName || cleanName.length < 2) {
       setError('Please enter your name (at least 2 characters).');
+      return;
+    }
+
+    if (cleanEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      setError('Please enter a valid email address.');
       return;
     }
 
@@ -77,6 +84,7 @@ export default function WishSubmissionPage() {
 
       await submitWish({
         name: cleanName,
+        email: cleanEmail,
         relationship: relationship.trim(),
         message: cleanMsg,
         photoFile,
@@ -145,6 +153,7 @@ export default function WishSubmissionPage() {
                 onClick={() => {
                   setSubmitted(false);
                   setName('');
+                  setEmail('');
                   setRelationship('');
                   setMessage('');
                   setPhotoFile(null);
@@ -194,6 +203,21 @@ export default function WishSubmissionPage() {
                   placeholder="e.g. Rahul / Ananya"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-[#F5F1EA] placeholder:text-[#F5F1EA]/30 focus:outline-none focus:border-[#B76E79] focus:ring-1 focus:ring-[#B76E79] transition-all text-sm"
+                />
+              </div>
+
+              {/* Email Address Field */}
+              <div>
+                <label className="block text-xs font-mono uppercase tracking-wider text-[#F5F1EA]/70 mb-2">
+                  Your Email Address <span className="text-[#F5F1EA]/40">(Optional - for thank you note)</span>
+                </label>
+                <input
+                  type="email"
+                  maxLength={100}
+                  placeholder="e.g. rahul@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-[#F5F1EA] placeholder:text-[#F5F1EA]/30 focus:outline-none focus:border-[#B76E79] focus:ring-1 focus:ring-[#B76E79] transition-all text-sm"
                 />
               </div>

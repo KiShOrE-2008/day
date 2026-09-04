@@ -34,13 +34,25 @@ function HomeStory() {
     const hash = location.hash || window.location.hash;
     if (hash) {
       const targetId = hash.replace('#', '');
-      const timer = setTimeout(() => {
+
+      const scrollToTarget = () => {
         const elem = document.getElementById(targetId);
         if (elem) {
-          elem.scrollIntoView({ behavior: 'smooth' });
+          if (window.lenis) {
+            window.lenis.scrollTo(elem, { duration: 1.2, immediate: false });
+          } else {
+            elem.scrollIntoView({ behavior: 'smooth' });
+          }
         }
-      }, 400);
-      return () => clearTimeout(timer);
+      };
+
+      const timer1 = setTimeout(scrollToTarget, 250);
+      const timer2 = setTimeout(scrollToTarget, 700);
+
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+      };
     }
   }, [location]);
 

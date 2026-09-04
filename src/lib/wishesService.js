@@ -1,5 +1,6 @@
 import { supabase, isSupabaseConfigured, BUCKET_NAME } from './supabase';
 import { compressImage, validateImageFile } from './imageCompressor';
+import { sendResendThankYouEmail } from './resendService';
 
 // ----------------------------------------------------------------------
 // SAMPLE MOCK WISHES FOR DEV FALLBACK MODE
@@ -8,6 +9,7 @@ const INITIAL_MOCK_WISHES = [
   {
     id: 'mock-1',
     name: 'Rahul',
+    email: 'rahul@example.com',
     relationship: 'Friend',
     message: 'Happy Birthday Miyaaaaww! ❤️ Wishing you all the joy, love, and laughter in the world today!',
     photo_path: null,
@@ -15,10 +17,13 @@ const INITIAL_MOCK_WISHES = [
     featured: true,
     created_at: new Date(Date.now() - 3600000 * 24 * 2).toISOString(),
     approved_at: new Date(Date.now() - 3600000 * 24 * 2).toISOString(),
+    thank_you_sent: false,
+    thank_you_sent_at: null,
   },
   {
     id: 'mock-2',
     name: 'Ananya',
+    email: 'ananya@example.com',
     relationship: 'Best Friend',
     message: 'Happy Birthday Sowmiya! Stay crazy, keep smiling, and never stop inspiring everyone around you! ✨🎂',
     photo_path: null,
@@ -26,10 +31,13 @@ const INITIAL_MOCK_WISHES = [
     featured: true,
     created_at: new Date(Date.now() - 3600000 * 24 * 1).toISOString(),
     approved_at: new Date(Date.now() - 3600000 * 24 * 1).toISOString(),
+    thank_you_sent: true,
+    thank_you_sent_at: new Date(Date.now() - 3600000 * 12).toISOString(),
   },
   {
     id: 'mock-3',
     name: 'SIH Teammate',
+    email: 'sih-team@example.com',
     relationship: 'SIH Team',
     message: 'To the absolute hackathon champ! 🏆 Happy Birthday Miyaaaaww! Hope this year brings huge wins!',
     photo_path: null,
@@ -37,10 +45,13 @@ const INITIAL_MOCK_WISHES = [
     featured: true,
     created_at: new Date(Date.now() - 3600000 * 12).toISOString(),
     approved_at: new Date(Date.now() - 3600000 * 12).toISOString(),
+    thank_you_sent: false,
+    thank_you_sent_at: null,
   },
   {
     id: 'mock-4',
     name: 'Priya',
+    email: 'priya@example.com',
     relationship: 'Cousin',
     message: 'Sending you warmest birthday hugs! Happy Birthday Sowmiya darling! ❤️🎉',
     photo_path: null,
@@ -48,6 +59,8 @@ const INITIAL_MOCK_WISHES = [
     featured: false,
     created_at: new Date().toISOString(),
     approved_at: null,
+    thank_you_sent: false,
+    thank_you_sent_at: null,
   },
 ];
 
@@ -87,16 +100,21 @@ export function getPhotoUrl(photo_path) {
 }
 
 // ----------------------------------------------------------------------
-// 1. SUBMIT WISH
+// 1. SUBMIT WISH (WITH OPTIONAL EMAIL FOR THANK-YOU NOTES)
 // ----------------------------------------------------------------------
-export async function submitWish({ name, relationship, message, photoFile }) {
+export async function submitWish({ name, email, relationship, message, photoFile }) {
   // Validate text input
   const cleanName = (name || '').trim();
+  const cleanEmail = (email || '').trim().toLowerCase();
   const cleanRel = (relationship || '').trim();
   const cleanMsg = (message || '').trim();
 
   if (cleanName.length < 2 || cleanName.length > 80) {
     throw new Error('Name must be between 2 and 80 characters.');
+  }
+
+  if (cleanEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+    throw new Error('Please enter a valid email address.');
   }
 
   if (cleanMsg.length < 5 || cleanMsg.length > 1000) {
@@ -142,11 +160,13 @@ export async function submitWish({ name, relationship, message, photoFile }) {
       .insert([
         {
           name: cleanName,
+          email: cleanEmail || null,
           relationship: cleanRel || null,
           message: cleanMsg,
           photo_path,
           approved: false,
           featured: false,
+          thank_you_sent: false,
         },
       ])
       .select();
@@ -177,6 +197,7 @@ export async function submitWish({ name, relationship, message, photoFile }) {
   const newWish = {
     id: `local-${Date.now()}`,
     name: cleanName,
+    email: cleanEmail || null,
     relationship: cleanRel || null,
     message: cleanMsg,
     photo_path: localPhotoData,
@@ -184,6 +205,8 @@ export async function submitWish({ name, relationship, message, photoFile }) {
     featured: false,
     created_at: new Date().toISOString(),
     approved_at: null,
+    thank_you_sent: false,
+    thank_you_sent_at: null,
   };
 
   const list = getLocalWishes();
@@ -200,7 +223,7 @@ export async function fetchApprovedWishes() {
   if (isSupabaseConfigured() && supabase) {
     const { data, error } = await supabase
       .from('birthday_wishes')
-      .select('*')
+      .select('id, name, relationship, message, photo_path, featured, approved, created_at')
       .eq('approved', true)
       .order('featured', { ascending: false })
       .order('created_at', { ascending: false });
@@ -226,7 +249,7 @@ export async function fetchFeaturedWishes(limit = 8) {
   if (isSupabaseConfigured() && supabase) {
     const { data, error } = await supabase
       .from('birthday_wishes')
-      .select('*')
+      .select('id, name, relationship, message, photo_path, featured, approved, created_at')
       .eq('approved', true)
       .eq('featured', true)
       .order('created_at', { ascending: false })
@@ -241,7 +264,7 @@ export async function fetchFeaturedWishes(limit = 8) {
     if (!data || data.length === 0) {
       const { data: fallbackData } = await supabase
         .from('birthday_wishes')
-        .select('*')
+        .select('id, name, relationship, message, photo_path, featured, approved, created_at')
         .eq('approved', true)
         .order('created_at', { ascending: false })
         .limit(limit);
@@ -260,7 +283,7 @@ export async function fetchFeaturedWishes(limit = 8) {
 }
 
 // ----------------------------------------------------------------------
-// 4. FETCH ALL WISHES (FOR ADMIN DASHBOARD)
+// 4. FETCH ALL WISHES (FOR ADMIN DASHBOARD, INCLUDES EMAILS)
 // ----------------------------------------------------------------------
 export async function fetchAllWishes() {
   if (isSupabaseConfigured() && supabase) {
@@ -338,14 +361,19 @@ export async function rejectWish(id) {
 // ----------------------------------------------------------------------
 export async function editWish(id, updates) {
   const cleanName = (updates.name || '').trim();
+  const cleanEmail = (updates.email || '').trim().toLowerCase();
   const cleanRel = (updates.relationship || '').trim();
   const cleanMsg = (updates.message || '').trim();
 
   if (cleanName.length < 2) throw new Error('Name is required.');
   if (cleanMsg.length < 5) throw new Error('Message is required.');
+  if (cleanEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+    throw new Error('Please enter a valid email address.');
+  }
 
   const patch = {
     name: cleanName,
+    email: cleanEmail || null,
     relationship: cleanRel || null,
     message: cleanMsg,
     featured: Boolean(updates.featured),
@@ -404,7 +432,106 @@ export async function toggleFeaturedWish(id, featuredState) {
 }
 
 // ----------------------------------------------------------------------
-// 9. ADMIN AUTHENTICATION
+// 9. SEND THANK YOU EMAIL / REPLY (ADMIN -> SENDER VIA RESEND / BACKEND)
+// ----------------------------------------------------------------------
+export async function sendThankYouEmail(id, replyMessage = '') {
+  const timestamp = new Date().toISOString();
+  const cleanReply = (replyMessage || '').trim();
+
+  let targetWish = null;
+
+  if (isSupabaseConfigured() && supabase) {
+    // 1. Fetch wish details to get sender email & message
+    const { data: wish, error: fetchErr } = await supabase
+      .from('birthday_wishes')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (fetchErr || !wish) {
+      console.error('Wish fetch error:', fetchErr);
+      throw new Error('Could not find wish record to send reply.');
+    }
+
+    targetWish = wish;
+
+    if (!targetWish.email) {
+      throw new Error('This wish does not have a sender email address attached.');
+    }
+
+    // 2. Dispatch thank-you email via Resend API
+    await sendResendThankYouEmail({
+      toEmail: targetWish.email,
+      recipientName: targetWish.name,
+      replyMessage: cleanReply,
+      originalMessage: targetWish.message,
+    });
+
+    // 3. Mark wish as thank_you_sent in database
+    const { error: updateErr } = await supabase
+      .from('birthday_wishes')
+      .update({
+        thank_you_sent: true,
+        thank_you_sent_at: timestamp,
+        thank_you_message: cleanReply || null,
+        is_read: true,
+      })
+      .eq('id', id);
+
+    if (updateErr) {
+      console.error('Failed to mark thank-you sent:', updateErr);
+      throw new Error('Email dispatched, but failed to update status in database.');
+    }
+    return true;
+  }
+
+  // Dev fallback
+  const list = getLocalWishes();
+  const idx = list.findIndex((w) => w.id === id);
+  if (idx !== -1) {
+    targetWish = list[idx];
+    if (!targetWish.email) {
+      throw new Error('This wish does not have a sender email address attached.');
+    }
+
+    await sendResendThankYouEmail({
+      toEmail: targetWish.email,
+      recipientName: targetWish.name,
+      replyMessage: cleanReply,
+      originalMessage: targetWish.message,
+    });
+
+    list[idx].thank_you_sent = true;
+    list[idx].thank_you_sent_at = timestamp;
+    list[idx].thank_you_message = cleanReply || null;
+    list[idx].is_read = true;
+    saveLocalWishes(list);
+  } else {
+    throw new Error('Wish record not found.');
+  }
+
+  return true;
+}
+
+// ----------------------------------------------------------------------
+// 10. MARK WISH AS READ
+// ----------------------------------------------------------------------
+export async function markWishAsRead(id) {
+  if (isSupabaseConfigured() && supabase) {
+    await supabase.from('birthday_wishes').update({ is_read: true }).eq('id', id).catch(() => {});
+    return true;
+  }
+  const list = getLocalWishes();
+  const idx = list.findIndex((w) => w.id === id);
+  if (idx !== -1) {
+    list[idx].is_read = true;
+    saveLocalWishes(list);
+  }
+  return true;
+}
+
+// ----------------------------------------------------------------------
+// 10. ADMIN AUTHENTICATION
 // ----------------------------------------------------------------------
 export async function signInAdmin(email, password) {
   if (isSupabaseConfigured() && supabase) {
@@ -413,21 +540,32 @@ export async function signInAdmin(email, password) {
       password,
     });
     if (error) {
-      throw new Error(error.message || 'Invalid admin credentials.');
+      throw new Error(error.message || 'Invalid login credentials.');
     }
     return data.session;
   }
 
-  // Dev fallback mode auth check
-  if (email === 'admin@miyaaaaww.com' || password === 'admin123') {
+  // Dev fallback mode auth check for both Sowmiya & Admin
+  const cleanE = (email || '').trim().toLowerCase();
+  if (
+    cleanE === 'sowmiya@miyaaaaww.com' ||
+    password === 'sowmiya123' ||
+    cleanE === 'admin@miyaaaaww.com' ||
+    password === 'admin123'
+  ) {
+    const isSowmiya = cleanE.includes('sowmiya') || password === 'sowmiya123';
     const devSession = {
-      user: { id: 'dev-admin-id', email: 'admin@miyaaaaww.com' },
+      user: {
+        id: isSowmiya ? 'dev-sowmiya-id' : 'dev-admin-id',
+        email: isSowmiya ? 'sowmiya@miyaaaaww.com' : 'admin@miyaaaaww.com',
+        user_metadata: { name: isSowmiya ? 'Sowmiyaa' : 'Admin' },
+      },
       access_token: 'dev-token',
     };
     sessionStorage.setItem('dev_admin_session', JSON.stringify(devSession));
     return devSession;
   }
-  throw new Error('Invalid dev admin login. (Try admin@miyaaaaww.com / admin123)');
+  throw new Error('Invalid login credentials. (Try sowmiya@miyaaaaww.com / sowmiya123 or admin@miyaaaaww.com / admin123)');
 }
 
 export async function signOutAdmin() {

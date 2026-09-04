@@ -83,7 +83,11 @@ export default function Navbar() {
   const scrollToSection = (id) => {
     const elem = document.getElementById(id);
     if (elem) {
-      elem.scrollIntoView({ behavior: 'smooth' });
+      if (window.lenis) {
+        window.lenis.scrollTo(elem, { duration: 1.2 });
+      } else {
+        elem.scrollIntoView({ behavior: 'smooth' });
+      }
       setMobileMenuOpen(false);
     }
   };

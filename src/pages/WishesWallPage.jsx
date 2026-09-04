@@ -1,27 +1,34 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Sparkles, ArrowLeft, Star, PlusCircle, Quote, Filter } from 'lucide-react';
+import { Heart, Sparkles, ArrowLeft, Star, PlusCircle, Quote, Maximize2 } from 'lucide-react';
 import gsap from 'gsap';
 import { fetchApprovedWishes, getPhotoUrl } from '../lib/wishesService';
+import WishDetailModal from '../components/WishDetailModal';
 
 export default function WishesWallPage() {
   const [wishes, setWishes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('ALL');
+  const [selectedIndex, setSelectedIndex] = useState(null);
   const cardsRef = useRef([]);
 
   useEffect(() => {
     fetchApprovedWishes()
-      .then((data) => setWishes(data))
+      .then((data) => setWishes(data || []))
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
   }, []);
+
+  // Reset selectedIndex if activeFilter changes
+  useEffect(() => {
+    setSelectedIndex(null);
+  }, [activeFilter]);
 
   // GSAP animation for floating wish cards
   useEffect(() => {
     if (cardsRef.current.length > 0) {
       gsap.fromTo(
-        cardsRef.current,
+        cardsRef.current.filter(Boolean),
         { y: 50, opacity: 0, scale: 0.96 },
         {
           y: 0,
@@ -42,6 +49,13 @@ export default function WishesWallPage() {
     if (activeFilter === 'ALL') return true;
     return w.relationship === activeFilter;
   });
+
+  const selectedWish = selectedIndex !== null ? filteredWishes[selectedIndex] : null;
+  const handlePrev = selectedIndex > 0 ? () => setSelectedIndex(selectedIndex - 1) : null;
+  const handleNext =
+    selectedIndex !== null && selectedIndex < filteredWishes.length - 1
+      ? () => setSelectedIndex(selectedIndex + 1)
+      : null;
 
   return (
     <div className="min-h-screen bg-[#080808] text-[#F5F1EA] selection:bg-[#B76E79]/30 selection:text-white px-4 py-8 md:py-16">
@@ -134,12 +148,18 @@ export default function WishesWallPage() {
                 <div
                   key={wish.id}
                   ref={(el) => (cardsRef.current[index] = el)}
-                  className={`break-inside-avoid bg-[#121212]/80 border rounded-3xl p-6 backdrop-blur-xl transition-all hover:border-[#B76E79]/40 shadow-xl ${
+                  onClick={() => setSelectedIndex(index)}
+                  className={`break-inside-avoid bg-[#121212]/80 border rounded-3xl p-6 backdrop-blur-xl transition-all hover:border-[#B76E79]/60 shadow-xl cursor-pointer hover:scale-[1.02] relative group ${
                     wish.featured
                       ? 'border-[#D4AF37]/40 bg-gradient-to-b from-[#D4AF37]/[0.05] to-[#121212]/90'
                       : 'border-white/10'
                   }`}
                 >
+                  {/* Expand Hint Icon */}
+                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 p-1.5 rounded-full border border-white/20 text-[#B76E79]">
+                    <Maximize2 className="w-3.5 h-3.5" />
+                  </div>
+
                   {/* Photo if present */}
                   {photoUrl && (
                     <div className="mb-4 rounded-2xl overflow-hidden border border-white/10 max-h-64 bg-black/40">
@@ -163,7 +183,7 @@ export default function WishesWallPage() {
                   <Quote className="w-6 h-6 text-[#B76E79]/30 mb-2" />
 
                   {/* Message */}
-                  <p className="text-sm md:text-base text-[#F5F1EA]/90 font-light leading-relaxed mb-4 whitespace-pre-wrap">
+                  <p className="text-sm md:text-base text-[#F5F1EA]/90 font-light leading-relaxed mb-4 whitespace-pre-wrap line-clamp-4">
                     {wish.message}
                   </p>
 
@@ -201,6 +221,16 @@ export default function WishesWallPage() {
           <span>Submit Your Birthday Wish</span>
         </Link>
       </footer>
+
+      {/* Detailed Wish Pop-up Modal */}
+      <WishDetailModal
+        wish={selectedWish}
+        onClose={() => setSelectedIndex(null)}
+        onPrev={handlePrev}
+        onNext={handleNext}
+        currentIndex={selectedIndex !== null ? selectedIndex + 1 : null}
+        totalCount={filteredWishes.length}
+      />
     </div>
   );
 }

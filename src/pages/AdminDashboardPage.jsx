@@ -17,7 +17,11 @@ import {
   Image as ImageIcon,
   Check,
   X,
-  Clock
+  Clock,
+  Mail,
+  Send,
+  MessageSquare,
+  MailOpen
 } from 'lucide-react';
 import {
   fetchAllWishes,
@@ -25,10 +29,13 @@ import {
   rejectWish,
   editWish,
   toggleFeaturedWish,
+  sendThankYouEmail,
+  markWishAsRead,
   getAdminSession,
   signOutAdmin,
   getPhotoUrl
 } from '../lib/wishesService';
+import ReplyComposerModal from '../components/ReplyComposerModal';
 
 export default function AdminDashboardPage() {
   const [session, setSession] = useState(null);
@@ -38,7 +45,8 @@ export default function AdminDashboardPage() {
   const [loadingData, setLoadingData] = useState(true);
   const [error, setError] = useState(null);
 
-  const [filterTab, setFilterTab] = useState('pending'); // 'pending' | 'approved' | 'featured' | 'all'
+  const [filterTab, setFilterTab] = useState('all'); // 'all' | 'new' | 'replied' | 'featured'
+  const [replyingWish, setReplyingWish] = useState(null); // wish object being replied to
   const [editingWish, setEditingWish] = useState(null); // wish object being edited
 
   const navigate = useNavigate();
@@ -63,7 +71,7 @@ export default function AdminDashboardPage() {
     setError(null);
     try {
       const data = await fetchAllWishes();
-      setWishes(data);
+      setWishes(data || []);
     } catch (err) {
       console.error('Failed to load wishes:', err);
       setError(err.message || 'Failed to load wishes.');
@@ -101,6 +109,22 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const handleSendReply = async (id, replyMessage) => {
+    try {
+      await sendThankYouEmail(id, replyMessage);
+      loadWishes();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleOpenReply = async (wish) => {
+    setReplyingWish(wish);
+    if (!wish.is_read) {
+      await markWishAsRead(wish.id);
+    }
+  };
+
   const handleSaveEdit = async (e) => {
     e.preventDefault();
     if (!editingWish) return;
@@ -108,6 +132,7 @@ export default function AdminDashboardPage() {
     try {
       await editWish(editingWish.id, {
         name: editingWish.name,
+        email: editingWish.email,
         relationship: editingWish.relationship,
         message: editingWish.message,
         featured: editingWish.featured,
@@ -130,20 +155,21 @@ export default function AdminDashboardPage() {
       <div className="min-h-screen bg-[#080808] flex items-center justify-center text-[#F5F1EA]">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-[#B76E79] border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs font-mono text-[#F5F1EA]/60">Authenticating session...</p>
+          <p className="text-xs font-mono text-[#F5F1EA]/60">Opening Miyaaaaww's Birthday Inbox...</p>
         </div>
       </div>
     );
   }
 
-  // Filtered List
-  const pendingCount = wishes.filter((w) => !w.approved).length;
-  const approvedCount = wishes.filter((w) => w.approved).length;
+  // Filter Counts
+  const totalCount = wishes.length;
+  const newCount = wishes.filter((w) => !w.is_read || !w.approved).length;
+  const repliedCount = wishes.filter((w) => w.thank_you_sent).length;
   const featuredCount = wishes.filter((w) => w.featured).length;
 
   const filteredWishes = wishes.filter((w) => {
-    if (filterTab === 'pending') return !w.approved;
-    if (filterTab === 'approved') return w.approved;
+    if (filterTab === 'new') return !w.is_read || !w.approved;
+    if (filterTab === 'replied') return w.thank_you_sent;
     if (filterTab === 'featured') return w.featured;
     return true;
   });
@@ -154,14 +180,17 @@ export default function AdminDashboardPage() {
       <header className="max-w-6xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-8 border-b border-white/10">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-[#B76E79]/20 text-[#B76E79] text-xs font-mono uppercase tracking-wider">
-              Admin Portal
+            <span className="px-3 py-1 rounded-full bg-[#B76E79]/20 border border-[#B76E79]/40 text-[#E89CA7] text-xs font-mono uppercase tracking-wider flex items-center gap-1.5">
+              <Heart className="w-3.5 h-3.5 fill-current" />
+              <span>Sowmiyaa Private Inbox</span>
             </span>
-            <span className="text-xs text-[#F5F1EA]/40 font-mono">
+            <span className="text-xs text-[#F5F1EA]/40 font-mono hidden sm:inline">
               {session?.user?.email}
             </span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-serif mt-1">Sowmiyaa Wishes Dashboard</h1>
+          <h1 className="text-2xl md:text-3xl font-serif mt-2 text-[#F5F1EA]">
+            Miyaaaaww's Birthday Inbox ❤️
+          </h1>
         </div>
 
         <div className="flex items-center gap-3">
@@ -173,13 +202,15 @@ export default function AdminDashboardPage() {
             <RefreshCw className={`w-3.5 h-3.5 ${loadingData ? 'animate-spin' : ''}`} />
             <span className="hidden sm:inline">Refresh</span>
           </button>
+
           <Link
             to="/wishes"
-            className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono flex items-center gap-2 transition-colors"
+            className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono flex items-center gap-2 transition-colors text-[#D4AF37]"
           >
-            <Eye className="w-3.5 h-3.5 text-[#D4AF37]" />
+            <Eye className="w-3.5 h-3.5" />
             <span>Public Wall</span>
           </Link>
+
           <button
             onClick={handleLogout}
             className="px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-300 text-xs font-mono flex items-center gap-2 transition-colors"
@@ -193,68 +224,86 @@ export default function AdminDashboardPage() {
       <main className="max-w-6xl mx-auto py-8">
         {/* Stat Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-[#121212] border border-white/10 rounded-2xl p-5">
-            <div className="text-xs font-mono text-[#F5F1EA]/50 uppercase tracking-wider">Total Received</div>
-            <div className="text-3xl font-serif text-[#F5F1EA] mt-1">{wishes.length}</div>
+          <div className="bg-[#121212] border border-white/10 rounded-2xl p-5 shadow-xl">
+            <div className="text-xs font-mono text-[#F5F1EA]/50 uppercase tracking-wider flex items-center gap-1.5">
+              <Mail className="w-3.5 h-3.5 text-[#B76E79]" />
+              <span>Total Wishes</span>
+            </div>
+            <div className="text-3xl font-serif text-[#F5F1EA] mt-2">{totalCount}</div>
           </div>
-          <div className="bg-[#121212] border border-amber-500/30 rounded-2xl p-5">
-            <div className="text-xs font-mono text-amber-400/80 uppercase tracking-wider">Pending Moderation</div>
-            <div className="text-3xl font-serif text-amber-300 mt-1">{pendingCount}</div>
+
+          <div className="bg-[#121212] border border-amber-500/30 rounded-2xl p-5 shadow-xl">
+            <div className="text-xs font-mono text-amber-400/80 uppercase tracking-wider flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>New / Unread</span>
+            </div>
+            <div className="text-3xl font-serif text-amber-300 mt-2">{newCount}</div>
           </div>
-          <div className="bg-[#121212] border border-emerald-500/30 rounded-2xl p-5">
-            <div className="text-xs font-mono text-emerald-400/80 uppercase tracking-wider">Approved & Live</div>
-            <div className="text-3xl font-serif text-emerald-300 mt-1">{approvedCount}</div>
+
+          <div className="bg-[#121212] border border-[#B76E79]/40 rounded-2xl p-5 shadow-xl">
+            <div className="text-xs font-mono text-[#E89CA7] uppercase tracking-wider flex items-center gap-1.5">
+              <Heart className="w-3.5 h-3.5 text-[#B76E79] fill-current" />
+              <span>Replied</span>
+            </div>
+            <div className="text-3xl font-serif text-[#E89CA7] mt-2">{repliedCount}</div>
           </div>
-          <div className="bg-[#121212] border border-[#D4AF37]/40 rounded-2xl p-5">
-            <div className="text-xs font-mono text-[#D4AF37] uppercase tracking-wider">Featured Cards</div>
-            <div className="text-3xl font-serif text-[#D4AF37] mt-1">{featuredCount}</div>
+
+          <div className="bg-[#121212] border border-[#D4AF37]/40 rounded-2xl p-5 shadow-xl">
+            <div className="text-xs font-mono text-[#D4AF37] uppercase tracking-wider flex items-center gap-1.5">
+              <Star className="w-3.5 h-3.5 text-[#D4AF37] fill-current" />
+              <span>Featured Cards</span>
+            </div>
+            <div className="text-3xl font-serif text-[#D4AF37] mt-2">{featuredCount}</div>
           </div>
         </div>
 
         {/* Filter Tabs */}
         <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-6 border-b border-white/5">
           <button
-            onClick={() => setFilterTab('pending')}
+            onClick={() => setFilterTab('all')}
+            className={`px-4 py-2 rounded-xl text-xs font-mono transition-all shrink-0 ${
+              filterTab === 'all'
+                ? 'bg-[#B76E79]/20 border border-[#B76E79]/50 text-[#E89CA7] font-bold'
+                : 'bg-white/5 border border-white/10 text-[#F5F1EA]/60 hover:text-white'
+            }`}
+          >
+            All Wishes ({totalCount})
+          </button>
+
+          <button
+            onClick={() => setFilterTab('new')}
             className={`px-4 py-2 rounded-xl text-xs font-mono flex items-center gap-2 transition-all shrink-0 ${
-              filterTab === 'pending'
-                ? 'bg-amber-500/20 border border-amber-500/50 text-amber-300'
+              filterTab === 'new'
+                ? 'bg-amber-500/20 border border-amber-500/50 text-amber-300 font-bold'
                 : 'bg-white/5 border border-white/10 text-[#F5F1EA]/60 hover:text-white'
             }`}
           >
             <Clock className="w-3.5 h-3.5" />
-            <span>Pending ({pendingCount})</span>
+            <span>New / Unread ({newCount})</span>
           </button>
+
           <button
-            onClick={() => setFilterTab('approved')}
+            onClick={() => setFilterTab('replied')}
             className={`px-4 py-2 rounded-xl text-xs font-mono flex items-center gap-2 transition-all shrink-0 ${
-              filterTab === 'approved'
-                ? 'bg-emerald-500/20 border border-emerald-500/50 text-emerald-300'
+              filterTab === 'replied'
+                ? 'bg-[#B76E79]/30 border border-[#B76E79]/60 text-[#E89CA7] font-bold'
                 : 'bg-white/5 border border-white/10 text-[#F5F1EA]/60 hover:text-white'
             }`}
           >
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Approved ({approvedCount})</span>
+            <Heart className="w-3.5 h-3.5 fill-current text-[#B76E79]" />
+            <span>Replied ({repliedCount})</span>
           </button>
+
           <button
             onClick={() => setFilterTab('featured')}
             className={`px-4 py-2 rounded-xl text-xs font-mono flex items-center gap-2 transition-all shrink-0 ${
               filterTab === 'featured'
-                ? 'bg-[#D4AF37]/20 border border-[#D4AF37]/50 text-[#D4AF37]'
+                ? 'bg-[#D4AF37]/20 border border-[#D4AF37]/50 text-[#D4AF37] font-bold'
                 : 'bg-white/5 border border-white/10 text-[#F5F1EA]/60 hover:text-white'
             }`}
           >
             <Star className="w-3.5 h-3.5 fill-current" />
             <span>Featured ({featuredCount})</span>
-          </button>
-          <button
-            onClick={() => setFilterTab('all')}
-            className={`px-4 py-2 rounded-xl text-xs font-mono transition-all shrink-0 ${
-              filterTab === 'all'
-                ? 'bg-[#B76E79]/20 border border-[#B76E79]/50 text-[#B76E79]'
-                : 'bg-white/5 border border-white/10 text-[#F5F1EA]/60 hover:text-white'
-            }`}
-          >
-            All Wishes ({wishes.length})
           </button>
         </div>
 
@@ -269,13 +318,13 @@ export default function AdminDashboardPage() {
         {/* Wish Card List Grid */}
         {loadingData ? (
           <div className="py-20 text-center text-[#F5F1EA]/50 font-mono text-sm">
-            Loading wishes data...
+            Loading Miyaaaaww's birthday messages...
           </div>
         ) : filteredWishes.length === 0 ? (
-          <div className="py-20 text-center bg-[#121212]/50 border border-white/5 rounded-3xl p-8">
-            <Heart className="w-10 h-10 text-[#F5F1EA]/20 mx-auto mb-3" />
-            <p className="text-base font-serif text-[#F5F1EA]/70">No wishes found in this category.</p>
-            <p className="text-xs text-[#F5F1EA]/40 mt-1">Submissions from friends will appear here for your review.</p>
+          <div className="py-20 text-center bg-[#121212]/50 border border-white/5 rounded-3xl p-8 max-w-md mx-auto">
+            <Heart className="w-10 h-10 text-[#B76E79]/40 mx-auto mb-3" />
+            <p className="text-base font-serif text-[#F5F1EA]/70">No wishes in this view</p>
+            <p className="text-xs text-[#F5F1EA]/40 mt-1">Birthday notes from loved ones will appear here!</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -285,26 +334,46 @@ export default function AdminDashboardPage() {
               return (
                 <div
                   key={wish.id}
-                  className={`bg-[#121212] border rounded-3xl p-6 transition-all flex flex-col justify-between ${
-                    !wish.approved
-                      ? 'border-amber-500/30 bg-amber-500/[0.02]'
+                  className={`bg-[#121212] border rounded-3xl p-6 transition-all flex flex-col justify-between shadow-xl ${
+                    wish.thank_you_sent
+                      ? 'border-[#B76E79]/40 bg-[#B76E79]/[0.03]'
+                      : !wish.is_read
+                      ? 'border-amber-500/40 bg-amber-500/[0.03]'
                       : wish.featured
-                      ? 'border-[#D4AF37]/40 bg-[#D4AF37]/[0.02]'
+                      ? 'border-[#D4AF37]/40 bg-[#D4AF37]/[0.03]'
                       : 'border-white/10'
                   }`}
                 >
                   <div>
-                    {/* Header: Name, Relationship & Status Pills */}
+                    {/* Header: Name, Relationship, Email & Status Pills */}
                     <div className="flex items-start justify-between gap-3 mb-4">
                       <div>
-                        <h3 className="text-lg font-serif font-medium text-[#F5F1EA]">
-                          {wish.name}
-                        </h3>
-                        {wish.relationship && (
-                          <span className="inline-block mt-0.5 px-2 py-0.5 rounded bg-white/5 text-[11px] font-mono text-[#F5F1EA]/60">
-                            {wish.relationship}
-                          </span>
-                        )}
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-lg font-serif font-medium text-[#F5F1EA]">
+                            {wish.name}
+                          </h3>
+                          {!wish.is_read && (
+                            <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-mono uppercase font-bold animate-pulse">
+                              NEW
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                          {wish.relationship && (
+                            <span className="px-2 py-0.5 rounded bg-white/5 text-[11px] font-mono text-[#F5F1EA]/60">
+                              {wish.relationship}
+                            </span>
+                          )}
+                          {wish.email ? (
+                            <span className="px-2 py-0.5 rounded bg-[#B76E79]/15 border border-[#B76E79]/30 text-[11px] font-mono text-[#E89CA7] flex items-center gap-1">
+                              <Mail className="w-3 h-3 shrink-0" />
+                              <span>{wish.email}</span>
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-mono text-[#F5F1EA]/30">No email</span>
+                          )}
+                        </div>
                       </div>
 
                       <div className="flex flex-wrap items-center gap-1.5 justify-end">
@@ -317,6 +386,7 @@ export default function AdminDashboardPage() {
                             Pending
                           </span>
                         )}
+
                         {wish.featured && (
                           <span className="px-2 py-0.5 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] text-[10px] font-mono uppercase flex items-center gap-1">
                             <Star className="w-2.5 h-2.5 fill-current" />
@@ -327,9 +397,20 @@ export default function AdminDashboardPage() {
                     </div>
 
                     {/* Message Body */}
-                    <p className="text-sm text-[#F5F1EA]/80 leading-relaxed font-light mb-4 whitespace-pre-wrap">
+                    <p className="text-sm text-[#F5F1EA]/85 leading-relaxed font-light mb-4 whitespace-pre-wrap">
                       "{wish.message}"
                     </p>
+
+                    {/* Sent Reply Note Box if Replied */}
+                    {wish.thank_you_sent && wish.thank_you_message && (
+                      <div className="mb-4 p-3 rounded-2xl bg-[#B76E79]/10 border border-[#B76E79]/30 text-xs space-y-1">
+                        <div className="font-mono text-[#E89CA7] text-[10px] flex items-center gap-1">
+                          <Heart className="w-3 h-3 fill-current" />
+                          <span>Sowmiyaa's Reply Sent:</span>
+                        </div>
+                        <p className="text-[#F5F1EA]/80 italic">"{wish.thank_you_message}"</p>
+                      </div>
+                    )}
 
                     {/* Photo Thumbnail if present */}
                     {photoUrl && (
@@ -344,16 +425,38 @@ export default function AdminDashboardPage() {
                   </div>
 
                   {/* Footer Action Toolbar */}
-                  <div className="pt-4 border-t border-white/5 flex items-center justify-between gap-2 mt-4 text-xs font-mono">
+                  <div className="pt-4 border-t border-white/5 flex flex-wrap items-center justify-between gap-2 mt-4 text-xs font-mono">
                     <span className="text-[#F5F1EA]/30 text-[11px]">
                       {new Date(wish.created_at).toLocaleDateString()}
                     </span>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {/* REPLY BUTTON */}
+                      {wish.thank_you_sent ? (
+                        <button
+                          onClick={() => handleOpenReply(wish)}
+                          className="px-3 py-1.5 rounded-xl bg-[#B76E79]/20 border border-[#B76E79]/40 text-[#E89CA7] text-[11px] font-mono flex items-center gap-1 hover:bg-[#B76E79]/30 transition-all"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#B76E79]" />
+                          <span>Replied ✓</span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleOpenReply(wish)}
+                          disabled={!wish.email}
+                          className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#B76E79] to-[#D4AF37] hover:opacity-95 text-white font-medium text-[11px] font-mono flex items-center gap-1.5 shadow-lg transition-all disabled:opacity-30 disabled:pointer-events-none"
+                          title={wish.email ? `Reply to ${wish.email}` : 'No email address provided'}
+                        >
+                          <Heart className="w-3.5 h-3.5 fill-current" />
+                          <span>Reply ❤️</span>
+                        </button>
+                      )}
+
+                      {/* APPROVE / FEATURE MODERATION */}
                       {!wish.approved ? (
                         <button
                           onClick={() => handleApprove(wish.id)}
-                          className="px-3 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 flex items-center gap-1 transition-colors"
+                          className="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 flex items-center gap-1 transition-colors"
                         >
                           <Check className="w-3.5 h-3.5" />
                           <span>Approve</span>
@@ -361,30 +464,32 @@ export default function AdminDashboardPage() {
                       ) : (
                         <button
                           onClick={() => handleToggleFeatured(wish.id, wish.featured)}
-                          className={`px-3 py-1.5 rounded-lg border flex items-center gap-1 transition-colors ${
+                          className={`px-3 py-1.5 rounded-xl border flex items-center gap-1 transition-colors ${
                             wish.featured
                               ? 'bg-[#D4AF37]/20 border-[#D4AF37]/50 text-[#D4AF37]'
                               : 'bg-white/5 border-white/10 text-[#F5F1EA]/60 hover:text-white'
                           }`}
-                          title="Toggle featured status for story section"
+                          title="Toggle featured status"
                         >
                           <Star className={`w-3.5 h-3.5 ${wish.featured ? 'fill-current' : ''}`} />
                           <span>{wish.featured ? 'Featured' : 'Feature'}</span>
                         </button>
                       )}
 
+                      {/* EDIT */}
                       <button
                         onClick={() => setEditingWish(wish)}
-                        className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-[#F5F1EA]/70 transition-colors"
+                        className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-[#F5F1EA]/70 transition-colors"
                         title="Edit Wish"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
                       </button>
 
+                      {/* DELETE */}
                       <button
                         onClick={() => handleReject(wish.id)}
-                        className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-300 transition-colors"
-                        title="Reject / Delete"
+                        className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-300 transition-colors"
+                        title="Delete Wish"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -397,12 +502,19 @@ export default function AdminDashboardPage() {
         )}
       </main>
 
+      {/* SOWMIYA CUSTOM REPLY COMPOSER MODAL */}
+      <ReplyComposerModal
+        wish={replyingWish}
+        onClose={() => setReplyingWish(null)}
+        onSendReply={handleSendReply}
+      />
+
       {/* EDIT MODAL */}
       {editingWish && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-[#121212] border border-white/20 rounded-3xl p-6 md:p-8 max-w-lg w-full shadow-2xl">
             <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
-              <h2 className="text-xl font-serif text-[#F5F1EA]">Edit Wish Before Publishing</h2>
+              <h2 className="text-xl font-serif text-[#F5F1EA]">Edit Wish Details</h2>
               <button
                 onClick={() => setEditingWish(null)}
                 className="p-1.5 rounded-full hover:bg-white/10 text-[#F5F1EA]/60"
@@ -419,6 +531,17 @@ export default function AdminDashboardPage() {
                   required
                   value={editingWish.name}
                   onChange={(e) => setEditingWish({ ...editingWish, name: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-[#F5F1EA]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-mono text-[#F5F1EA]/70 mb-1">Email Address</label>
+                <input
+                  type="email"
+                  placeholder="e.g. rahul@example.com"
+                  value={editingWish.email || ''}
+                  onChange={(e) => setEditingWish({ ...editingWish, email: e.target.value })}
                   className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-[#F5F1EA]"
                 />
               </div>

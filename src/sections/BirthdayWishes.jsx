@@ -1,43 +1,72 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Sparkles, Star, Quote, ArrowRight } from 'lucide-react';
+import { Heart, Star, Quote, ArrowRight, Maximize2 } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { fetchFeaturedWishes, getPhotoUrl } from '../lib/wishesService';
+import { fetchFeaturedWishes } from '../lib/wishesService';
+import WishDetailModal from '../components/WishDetailModal';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function BirthdayWishes() {
   const [wishes, setWishes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedIndex, setSelectedIndex] = useState(null);
   const sectionRef = useRef(null);
   const cardsRef = useRef([]);
 
   useEffect(() => {
     fetchFeaturedWishes(6)
-      .then((data) => setWishes(data))
-      .catch((err) => console.error(err));
+      .then((data) => setWishes(data || []))
+      .catch((err) => {
+        console.error('Error fetching featured wishes:', err);
+        setWishes([]);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
-    if (cardsRef.current.length > 0 && sectionRef.current) {
+    cardsRef.current = cardsRef.current.slice(0, wishes.length);
+    const validCards = cardsRef.current.filter(Boolean);
+
+    if (validCards.length > 0 && sectionRef.current) {
       const ctx = gsap.context(() => {
-        gsap.from(cardsRef.current, {
-          y: 60,
-          opacity: 0,
-          scale: 0.95,
-          duration: 0.8,
-          stagger: 0.15,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: 'top 75%',
-          },
-        });
+        gsap.fromTo(
+          validCards,
+          { y: 50, opacity: 0, scale: 0.95 },
+          {
+            y: 0,
+            opacity: 1,
+            scale: 1,
+            duration: 0.8,
+            stagger: 0.15,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: sectionRef.current,
+              start: 'top 85%',
+              toggleActions: 'play none none none',
+            },
+          }
+        );
       }, sectionRef);
 
-      return () => ctx.revert();
+      const timer = setTimeout(() => {
+        ScrollTrigger.refresh();
+      }, 150);
+
+      return () => {
+        clearTimeout(timer);
+        ctx.revert();
+      };
     }
   }, [wishes]);
+
+  const selectedWish = selectedIndex !== null ? wishes[selectedIndex] : null;
+  const handlePrev = selectedIndex > 0 ? () => setSelectedIndex(selectedIndex - 1) : null;
+  const handleNext =
+    selectedIndex !== null && selectedIndex < wishes.length - 1
+      ? () => setSelectedIndex(selectedIndex + 1)
+      : null;
 
   return (
     <section
@@ -66,32 +95,41 @@ export default function BirthdayWishes() {
         </div>
 
         {/* Featured Wishes Cards Grid */}
-        {wishes.length > 0 ? (
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="bg-[#121212]/50 border border-white/5 rounded-3xl p-6 h-64 animate-pulse flex flex-col justify-between"
+              >
+                <div className="space-y-3">
+                  <div className="h-4 bg-white/10 rounded w-1/4" />
+                  <div className="h-4 bg-white/10 rounded w-3/4" />
+                  <div className="h-4 bg-white/10 rounded w-1/2" />
+                </div>
+                <div className="h-4 bg-white/10 rounded w-1/3" />
+              </div>
+            ))}
+          </div>
+        ) : wishes.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
             {wishes.map((wish, idx) => {
-              const photoUrl = getPhotoUrl(wish.photo_path);
-
               return (
                 <div
                   key={wish.id}
                   ref={(el) => (cardsRef.current[idx] = el)}
-                  className="bg-[#121212]/80 border border-white/10 hover:border-[#B76E79]/40 rounded-3xl p-6 backdrop-blur-xl transition-all duration-300 flex flex-col justify-between shadow-xl group"
+                  onClick={() => setSelectedIndex(idx)}
+                  className="bg-[#121212]/80 border border-white/10 hover:border-[#B76E79]/60 rounded-3xl p-6 backdrop-blur-xl transition-all duration-300 flex flex-col justify-between shadow-xl group cursor-pointer hover:scale-[1.02] hover:shadow-2xl relative"
                 >
-                  <div>
-                    {/* Optional Photo */}
-                    {photoUrl && (
-                      <div className="mb-4 rounded-2xl overflow-hidden border border-white/10 max-h-48 bg-black/40">
-                        <img
-                          src={photoUrl}
-                          alt={`Photo by ${wish.name}`}
-                          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      </div>
-                    )}
+                  {/* Expand Hint Icon */}
+                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 p-1.5 rounded-full border border-white/20 text-[#B76E79]">
+                    <Maximize2 className="w-3.5 h-3.5" />
+                  </div>
 
+                  <div>
                     <Quote className="w-6 h-6 text-[#B76E79]/40 mb-3" />
 
-                    <p className="text-sm text-[#F5F1EA]/85 font-light leading-relaxed mb-6 whitespace-pre-wrap">
+                    <p className="text-sm text-[#F5F1EA]/85 font-light leading-relaxed mb-6 whitespace-pre-wrap line-clamp-4">
                       "{wish.message}"
                     </p>
                   </div>
@@ -141,6 +179,17 @@ export default function BirthdayWishes() {
           </Link>
         </div>
       </div>
+
+      {/* Detailed Wish Pop-up Modal */}
+      <WishDetailModal
+        wish={selectedWish}
+        onClose={() => setSelectedIndex(null)}
+        onPrev={handlePrev}
+        onNext={handleNext}
+        currentIndex={selectedIndex !== null ? selectedIndex + 1 : null}
+        totalCount={wishes.length}
+      />
     </section>
   );
 }
+
