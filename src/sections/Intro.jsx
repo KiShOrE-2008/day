@@ -33,7 +33,7 @@ export default function Intro() {
         { opacity: 0, scale: 0.9, y: 20 },
         { opacity: 1, scale: 1, y: 0, duration: 1 }
       )
-      .to([dateRef.current, countdownRef.current], { opacity: 0.2, duration: 0.8 }, '+=0.5')
+      .to([dateRef.current, countdownRef.current], { opacity: 0, duration: 0.8 }, '+=0.5')
 
       // Step 2: Fade in quote part 1
       .fromTo(
