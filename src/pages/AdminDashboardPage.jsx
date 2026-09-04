@@ -199,7 +199,9 @@ export default function AdminDashboardPage() {
               <span>Sowmiyaa Private Inbox</span>
             </span>
             <span className="text-xs text-[#F5F1EA]/40 font-mono hidden sm:inline">
-              {session?.user?.email}
+              {session?.user?.email
+                ? `${session.user.email.substring(0, 3)}•••`
+                : ''}
             </span>
           </div>
           <h1 className="text-2xl md:text-3xl font-serif mt-2 text-[#F5F1EA]">

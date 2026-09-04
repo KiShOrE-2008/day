@@ -546,14 +546,14 @@ export async function signInAdmin(email, password) {
   }
 
   // Dev fallback mode auth check for both Sowmiya & Admin
+  // IMPORTANT: Use strict && pairing so email AND password must both match
   const cleanE = (email || '').trim().toLowerCase();
-  if (
-    cleanE === 'sowmiya@miyaaaaww.com' ||
-    password === 'sowmiya123' ||
-    cleanE === 'admin@miyaaaaww.com' ||
-    password === 'admin123'
-  ) {
-    const isSowmiya = cleanE.includes('sowmiya') || password === 'sowmiya123';
+  const isSowmiya =
+    cleanE === 'sowmiya@miyaaaaww.com' && password === 'sowmiya123';
+  const isAdmin =
+    cleanE === 'admin@miyaaaaww.com' && password === 'admin123';
+
+  if (isSowmiya || isAdmin) {
     const devSession = {
       user: {
         id: isSowmiya ? 'dev-sowmiya-id' : 'dev-admin-id',
@@ -565,7 +565,7 @@ export async function signInAdmin(email, password) {
     sessionStorage.setItem('dev_admin_session', JSON.stringify(devSession));
     return devSession;
   }
-  throw new Error('Invalid login credentials. (Try sowmiya@miyaaaaww.com / sowmiya123 or admin@miyaaaaww.com / admin123)');
+  throw new Error('Invalid login credentials. Please check your email and password.');
 }
 
 export async function signOutAdmin() {

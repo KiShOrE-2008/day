@@ -1,7 +1,5 @@
-const RESEND_API_KEY =
-  import.meta.env.VITE_RESEND_API_KEY ||
-  import.meta.env.RESEND_API_KEY ||
-  '';
+// Only VITE_ prefixed env vars are exposed to the browser by Vite
+const RESEND_API_KEY = import.meta.env.VITE_RESEND_API_KEY || '';
 
 export async function sendResendThankYouEmail({
   toEmail,

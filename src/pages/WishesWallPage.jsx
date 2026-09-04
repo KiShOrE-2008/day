@@ -8,6 +8,7 @@ import WishDetailModal from '../components/WishDetailModal';
 export default function WishesWallPage() {
   const [wishes, setWishes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
   const [activeFilter, setActiveFilter] = useState('ALL');
   const [selectedIndex, setSelectedIndex] = useState(null);
   const cardsRef = useRef([]);
@@ -15,7 +16,10 @@ export default function WishesWallPage() {
   useEffect(() => {
     fetchApprovedWishes()
       .then((data) => setWishes(data || []))
-      .catch((err) => console.error(err))
+      .catch((err) => {
+        console.error(err);
+        setFetchError('Could not load birthday wishes. Please refresh the page.');
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -120,7 +124,11 @@ export default function WishesWallPage() {
 
       {/* Wishes Wall Grid */}
       <main className="relative z-10 max-w-6xl mx-auto">
-        {loading ? (
+        {fetchError ? (
+          <div className="py-20 text-center bg-red-950/40 border border-red-500/30 rounded-3xl p-8 max-w-md mx-auto">
+            <p className="text-red-300 text-sm font-mono">⚠️ {fetchError}</p>
+          </div>
+        ) : loading ? (
           <div className="py-20 text-center text-[#F5F1EA]/50 font-mono text-sm">
             Loading birthday wishes...
           </div>

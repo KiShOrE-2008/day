@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Lock, Mail, Key, ShieldCheck, Heart, AlertCircle, ArrowLeft, Sparkles } from 'lucide-react';
+import { Lock, Mail, Key, ShieldCheck, Heart, AlertCircle, ArrowLeft, Sparkles, Eye, EyeOff } from 'lucide-react';
 import { signInAdmin, getAdminSession } from '../lib/wishesService';
 import { isSupabaseConfigured } from '../lib/supabase';
 
 export default function AdminLoginPage() {
   const [role, setRole] = useState('sowmiya'); // 'sowmiya' | 'admin'
-  const [email, setEmail] = useState('sowmiya@miyaaaaww.com');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -24,11 +25,8 @@ export default function AdminLoginPage() {
   const handleRoleSwitch = (selectedRole) => {
     setRole(selectedRole);
     setError(null);
-    if (selectedRole === 'sowmiya') {
-      setEmail('sowmiya@miyaaaaww.com');
-    } else {
-      setEmail('admin@miyaaaaww.com');
-    }
+    setEmail('');
+    setPassword(''); // Also clear password when switching roles
   };
 
   const handleLogin = async (e) => {
@@ -152,7 +150,7 @@ export default function AdminLoginPage() {
                 <input
                   type="email"
                   required
-                  placeholder={role === 'sowmiya' ? 'sowmiya@miyaaaaww.com' : 'admin@example.com'}
+                  placeholder={role === 'sowmiya' ? 'Enter your email address...' : 'admin@example.com'}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-[#F5F1EA] placeholder:text-[#F5F1EA]/30 focus:outline-none focus:border-[#B76E79] text-sm"
@@ -167,13 +165,26 @@ export default function AdminLoginPage() {
               <div className="relative">
                 <Key className="w-4 h-4 absolute left-3.5 top-3.5 text-[#F5F1EA]/40" />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   required
                   placeholder="••••••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-[#F5F1EA] placeholder:text-[#F5F1EA]/30 focus:outline-none focus:border-[#B76E79] text-sm"
+                  className="w-full pl-10 pr-10 py-3 rounded-xl bg-white/5 border border-white/10 text-[#F5F1EA] placeholder:text-[#F5F1EA]/30 focus:outline-none focus:border-[#B76E79] text-sm"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-3.5 text-[#F5F1EA]/40 hover:text-[#F5F1EA] transition-colors focus:outline-none"
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4 text-[#B76E79]" />
+                  ) : (
+                    <Eye className="w-4 h-4 text-[#F5F1EA]/50" />
+                  )}
+                </button>
               </div>
             </div>
 

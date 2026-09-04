@@ -12,6 +12,7 @@ export default function ReplyComposerModal({ wish, onClose, onSendReply }) {
   const [replyText, setReplyText] = useState('');
   const [sending, setSending] = useState(false);
   const [sentSuccess, setSentSuccess] = useState(false);
+  const [sendError, setSendError] = useState(null);
 
   useEffect(() => {
     if (wish?.thank_you_message) {
@@ -19,6 +20,8 @@ export default function ReplyComposerModal({ wish, onClose, onSendReply }) {
     } else {
       setReplyText(QUICK_REPLIES[0]);
     }
+    // Reset error when wish changes
+    setSendError(null);
   }, [wish]);
 
   if (!wish) return null;
@@ -28,6 +31,7 @@ export default function ReplyComposerModal({ wish, onClose, onSendReply }) {
     if (!replyText.trim()) return;
 
     setSending(true);
+    setSendError(null);
     try {
       await onSendReply(wish.id, replyText.trim());
       setSentSuccess(true);
@@ -36,7 +40,7 @@ export default function ReplyComposerModal({ wish, onClose, onSendReply }) {
         onClose();
       }, 1400);
     } catch (err) {
-      alert(err.message || 'Failed to send reply');
+      setSendError(err.message || 'Failed to send reply. Please try again.');
     } finally {
       setSending(false);
     }
@@ -86,6 +90,13 @@ export default function ReplyComposerModal({ wish, onClose, onSendReply }) {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Inline Error Message */}
+            {sendError && (
+              <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs flex items-start gap-2">
+                <span className="shrink-0 mt-0.5">⚠️</span>
+                <span>{sendError}</span>
+              </div>
+            )}
             {/* Original Wish Preview Box */}
             <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-1.5">
               <div className="flex items-center gap-1.5 text-[11px] font-mono text-[#F5F1EA]/50">
