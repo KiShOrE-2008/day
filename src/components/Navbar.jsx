@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Code, Sparkles, Menu, X, Terminal, ChevronRight, Compass } from 'lucide-react';
+import { Heart, Code, Sparkles, Menu, X, Terminal, ChevronRight, Compass, Lock } from 'lucide-react';
 import gsap from 'gsap';
 
 export default function Navbar() {
@@ -280,6 +280,14 @@ export default function Navbar() {
 
           {/* Right Badge & Mobile Toggle */}
           <div className="flex items-center gap-2 shrink-0 ml-3">
+            <button
+              onClick={() => window.dispatchEvent(new Event('sow_relock'))}
+              title="Lock page"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 hover:bg-[#B76E79]/20 border border-white/10 hover:border-[#B76E79]/40 text-white/70 hover:text-[#E89CA7] text-xs font-mono transition-all duration-300"
+            >
+              <Lock className="w-3 h-3" />
+            </button>
+
             <Link
               to="/wish"
               className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#B76E79]/20 hover:bg-[#B76E79]/30 border border-[#B76E79]/40 text-[#E89CA7] text-xs font-mono transition-all duration-300 whitespace-nowrap"

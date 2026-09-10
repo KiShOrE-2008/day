@@ -27,13 +27,13 @@ export default function Intro() {
         },
       });
 
-      // Step 1: Fade in initial date 04.09.2025 & countdown timer
+      // Step 1: Show initial date 04.09.2025 & countdown timer immediately
       tl.fromTo(
         [dateRef.current, countdownRef.current],
-        { opacity: 0, scale: 0.9, y: 20 },
-        { opacity: 1, scale: 1, y: 0, duration: 1 }
+        { opacity: 1, scale: 1, y: 0 },
+        { opacity: 0, duration: 0.8 },
+        '+=0.5'
       )
-      .to([dateRef.current, countdownRef.current], { opacity: 0, duration: 0.8 }, '+=0.5')
 
       // Step 2: Fade in quote part 1
       .fromTo(

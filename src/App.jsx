@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import AudioController from './components/AudioController';
 import FilmGrain from './components/FilmGrain';
 import CustomCursor from './components/CustomCursor';
+import PasswordGate from './components/PasswordGate';
 
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -37,6 +38,16 @@ function HomeStory() {
   // Initialize Lenis smooth scroll for homepage story
   useLenis();
   const location = useLocation();
+
+  // Auto-refresh GSAP ScrollTrigger after mount
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (typeof window !== 'undefined' && window.ScrollTrigger) {
+        window.ScrollTrigger.refresh();
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Scroll to targeted section if hash exists (e.g. /#birthday-wishes-section)
   useEffect(() => {
@@ -116,7 +127,7 @@ export default function App() {
     <ErrorBoundary>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<HomeStory />} />
+          <Route path="/" element={<PasswordGate><HomeStory /></PasswordGate>} />
           <Route path="/wish" element={<WishSubmissionPage />} />
           <Route path="/wishes" element={<WishesWallPage />} />
           <Route path="/admin/login" element={<AdminLoginPage />} />
