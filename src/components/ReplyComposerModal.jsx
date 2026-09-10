@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Send, Heart, Sparkles, MessageSquare, Quote, CheckCircle2 } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { X, Send, Heart, Sparkles, Quote, CheckCircle2 } from 'lucide-react';
 
 const QUICK_REPLIES = [
   'Thank you so much for the birthday wishes! ❤️ You made my day extra special!',
@@ -46,22 +47,22 @@ export default function ReplyComposerModal({ wish, onClose, onSendReply }) {
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+  return createPortal(
+    <>
       <div
-        className="fixed inset-0"
+        className="fixed top-0 left-0 w-screen h-screen z-[99990] bg-black/80 backdrop-blur-md animate-fade-in"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      <div className="relative z-10 w-full max-w-lg bg-[#121212] border border-[#B76E79]/40 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden my-auto">
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[99999] w-[92vw] max-w-lg bg-[#0a0a0c]/90 backdrop-blur-2xl border border-white/20 rounded-3xl p-6 sm:p-8 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95)] overflow-hidden max-h-[85vh] flex flex-col">
         {/* Top Glow Accent */}
-        <div className="absolute -top-20 -right-20 w-52 h-52 bg-[#B76E79]/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-20 -right-20 w-52 h-52 bg-[#B76E79]/25 rounded-full blur-3xl pointer-events-none" />
 
         {/* Modal Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-6">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-[#B76E79]/20 text-[#B76E79] flex items-center justify-center">
+        <div className="flex items-center justify-between pb-4 border-b border-white/15 mb-6 relative z-10">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-[#B76E79]/20 border border-[#B76E79]/40 text-[#B76E79] flex items-center justify-center shadow-md">
               <Heart className="w-4 h-4 fill-current" />
             </div>
             <div>
@@ -72,24 +73,24 @@ export default function ReplyComposerModal({ wish, onClose, onSendReply }) {
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white/70 hover:text-white border border-white/15 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {sentSuccess ? (
-          <div className="py-12 text-center space-y-3 animate-fade-in">
-            <div className="w-14 h-14 bg-emerald-500/20 text-emerald-300 rounded-full flex items-center justify-center mx-auto">
+          <div className="py-12 text-center space-y-3 animate-fade-in relative z-10">
+            <div className="w-14 h-14 bg-emerald-500/20 text-emerald-300 rounded-full flex items-center justify-center mx-auto border border-emerald-500/40 shadow-lg">
               <CheckCircle2 className="w-8 h-8" />
             </div>
             <h4 className="font-serif text-xl text-[#F5F1EA]">Thank You Sent ❤️</h4>
-            <p className="text-xs text-[#F5F1EA]/60 font-mono">
+            <p className="text-xs text-[#F5F1EA]/70 font-mono">
               Your reply has been delivered to {wish.name}!
             </p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
             {/* Inline Error Message */}
             {sendError && (
               <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs flex items-start gap-2">
@@ -98,19 +99,19 @@ export default function ReplyComposerModal({ wish, onClose, onSendReply }) {
               </div>
             )}
             {/* Original Wish Preview Box */}
-            <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-1.5">
-              <div className="flex items-center gap-1.5 text-[11px] font-mono text-[#F5F1EA]/50">
+            <div className="p-3.5 rounded-2xl bg-white/[0.04] backdrop-blur-xl border border-white/15 space-y-1.5 shadow-inner">
+              <div className="flex items-center gap-1.5 text-[11px] font-mono text-[#F5F1EA]/60">
                 <Quote className="w-3 h-3 text-[#B76E79]" />
                 <span>Original Wish from {wish.name}:</span>
               </div>
-              <p className="text-xs text-[#F5F1EA]/80 italic line-clamp-3 leading-relaxed">
+              <p className="text-xs text-[#F5F1EA]/90 italic line-clamp-3 leading-relaxed">
                 "{wish.message}"
               </p>
             </div>
 
             {/* Quick Reply Preset Chips */}
             <div>
-              <label className="block text-xs font-mono uppercase tracking-wider text-[#F5F1EA]/60 mb-2">
+              <label className="block text-xs font-mono uppercase tracking-wider text-[#F5F1EA]/70 mb-2">
                 Quick Reply Templates
               </label>
               <div className="flex flex-wrap gap-2">
@@ -121,7 +122,7 @@ export default function ReplyComposerModal({ wish, onClose, onSendReply }) {
                     onClick={() => setReplyText(preset)}
                     className={`px-3 py-1.5 rounded-xl text-xs font-sans text-left transition-all border ${
                       replyText === preset
-                        ? 'bg-[#B76E79]/20 border-[#B76E79] text-[#E89CA7] font-medium'
+                        ? 'bg-[#B76E79]/25 border-[#B76E79] text-[#E89CA7] font-medium shadow-md'
                         : 'bg-white/5 border-white/10 text-[#F5F1EA]/70 hover:bg-white/10 hover:text-white'
                     }`}
                   >
@@ -147,11 +148,11 @@ export default function ReplyComposerModal({ wish, onClose, onSendReply }) {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/15">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-5 py-2.5 rounded-xl text-xs font-mono border border-white/10 text-[#F5F1EA]/70 hover:text-white transition-colors"
+                className="px-5 py-2.5 rounded-xl text-xs font-mono border border-white/15 text-[#F5F1EA]/70 hover:text-white hover:bg-white/10 transition-colors"
               >
                 Cancel
               </button>
@@ -177,6 +178,8 @@ export default function ReplyComposerModal({ wish, onClose, onSendReply }) {
           </form>
         )}
       </div>
-    </div>
+    </>,
+    document.body
   );
 }
+
