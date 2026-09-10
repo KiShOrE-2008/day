@@ -23,6 +23,7 @@ export default function Navbar() {
     { id: 'birthday-wishes-section', label: '06. Wishes', short: 'Wishes' },
     { id: 'love-letter-section', label: '07. Letter', short: 'Letter' },
     { id: 'finale-section', label: '08. Finale', short: 'Finale' },
+    { id: 'proposal-section', label: '09. Proposal', short: 'Forever', icon: Heart },
   ];
 
   // GSAP Entrance animation on mount

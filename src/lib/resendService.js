@@ -101,3 +101,75 @@ export async function sendResendThankYouEmail({
     throw err;
   }
 }
+
+const NOTIFICATION_EMAIL = import.meta.env.VITE_NOTIFICATION_EMAIL || 'kv.kishorevijay@gmail.com';
+
+export async function sendProposalNotificationEmail({ answer }) {
+  if (!RESEND_API_KEY) {
+    console.warn('Resend API key missing. Proposal notification simulated.');
+    return { success: true, simulated: true };
+  }
+
+  const isAccepted = answer === 'YES';
+  const subject = isAccepted
+    ? `💖 SOWMIYA SAID YES! — Proposal Response`
+    : `💭 Sowmiya responded: Needs a little time — Proposal Response`;
+
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: 'Georgia', serif; background-color: #080808; color: #F5F1EA; margin: 0; padding: 20px; }
+          .card { max-width: 550px; margin: 0 auto; background-color: #141414; border: 1px solid ${isAccepted ? '#00ff66' : '#B76E79'}; border-radius: 24px; padding: 32px; box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
+          .badge { display: inline-block; padding: 6px 14px; background-color: ${isAccepted ? 'rgba(0, 255, 106, 0.15)' : 'rgba(183, 110, 121, 0.2)'}; border: 1px solid ${isAccepted ? '#00ff66' : '#B76E79'}; color: ${isAccepted ? '#00ff66' : '#E89CA7'}; border-radius: 20px; font-size: 12px; font-family: monospace; text-transform: uppercase; margin-bottom: 16px; }
+          h2 { font-size: 26px; color: #F5F1EA; margin-top: 0; }
+          .response-box { background-color: ${isAccepted ? 'rgba(0, 255, 106, 0.1)' : 'rgba(183, 110, 121, 0.12)'}; border-left: 4px solid ${isAccepted ? '#00ff66' : '#B76E79'}; padding: 20px; border-radius: 12px; margin: 20px 0; font-size: 18px; line-height: 1.6; color: #F5F1EA; font-weight: bold; }
+          .footer { margin-top: 28px; text-align: center; font-size: 12px; color: rgba(245,241,234,0.4); font-family: monospace; }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <div class="badge">${isAccepted ? '✦ Proposal Accepted ✦' : '✦ Proposal Response ✦'}</div>
+          <h2>${isAccepted ? 'She Said YES! 💖' : 'Response Received 💭'}</h2>
+          <p style="color: rgba(245,241,234,0.8); font-size: 15px; line-height: 1.6;">
+            Sowmiya just answered your proposal on the website:
+          </p>
+
+          <div class="response-box">
+            ${isAccepted ? '“YES! I\'d love to walk this journey with you forever! 💖”' : '“I need a little more time 💭”'}
+          </div>
+
+          <div class="footer">
+            Submitted at: ${new Date().toLocaleString()}
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  const payload = {
+    from: 'Sowmiyaa Birthday <onboarding@resend.dev>',
+    to: [NOTIFICATION_EMAIL],
+    subject: subject,
+    html: htmlContent,
+  };
+
+  try {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const resData = await response.json().catch(() => ({}));
+    return { success: response.ok, data: resData };
+  } catch (err) {
+    console.error('Proposal notification email failed:', err);
+    return { success: false, error: err };
+  }
+}

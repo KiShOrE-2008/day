@@ -27,6 +27,7 @@ import LoveAboutYou from './sections/LoveAboutYou';
 import BirthdayWishes from './sections/BirthdayWishes';
 import LoveLetter from './sections/LoveLetter';
 import Finale from './sections/Finale';
+import Proposal from './sections/Proposal';
 
 // Pages
 import WishSubmissionPage from './pages/WishSubmissionPage';
@@ -117,6 +118,9 @@ function HomeStory() {
 
         {/* Section 11 — Grand Finale Celebration */}
         <Finale />
+
+        {/* Section 12 — Climax Proposal Page */}
+        <Proposal />
       </main>
     </div>
   );

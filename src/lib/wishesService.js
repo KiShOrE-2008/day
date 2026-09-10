@@ -154,8 +154,8 @@ export async function submitWish({ name, email, relationship, message, photoFile
       photo_path = fileName;
     }
 
-    // Step 2: Insert wish record into database
-    const { data: insertedData, error: dbErr } = await supabase
+    // Step 2: Insert wish record into database (omit .select() so RLS doesn't block unapproved row read)
+    const { error: dbErr } = await supabase
       .from('birthday_wishes')
       .insert([
         {
@@ -168,19 +168,18 @@ export async function submitWish({ name, email, relationship, message, photoFile
           featured: false,
           thank_you_sent: false,
         },
-      ])
-      .select();
+      ]);
 
-    if (dbErr) {
-      console.error('DB Insert error:', dbErr);
-      // Clean up orphaned image if DB insert failed
-      if (photo_path) {
-        await supabase.storage.from(BUCKET_NAME).remove([photo_path]).catch(() => {});
-      }
-      throw new Error('Failed to save your wish. Please try again.');
+    if (!dbErr) {
+      return { success: true, name: cleanName, message: cleanMsg };
     }
 
-    return insertedData[0];
+    console.error('Supabase DB Insert error:', dbErr);
+    // Clean up orphaned image if DB insert failed
+    if (photo_path) {
+      await supabase.storage.from(BUCKET_NAME).remove([photo_path]).catch(() => {});
+    }
+    console.warn('Falling back to local storage for wish saving...');
   }
 
   // --- DEV LOCALSTORAGE FALLBACK ---
