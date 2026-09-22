@@ -21,7 +21,6 @@ import Intro from './sections/Intro';
 import BirthdayReveal from './sections/BirthdayReveal';
 import FirstMeeting from './sections/FirstMeeting';
 import Timeline from './sections/Timeline';
-import HyderabadCTF from './sections/HyderabadCTF';
 import Memories from './sections/Memories';
 import LoveAboutYou from './sections/LoveAboutYou';
 import BirthdayWishes from './sections/BirthdayWishes';
@@ -101,25 +100,22 @@ function HomeStory() {
         {/* Section 05 — The Journey Vertical Timeline */}
         <Timeline />
 
-        {/* Section 06 — Hyderabad CTF Cyber World & Glitch Unlock */}
-        <HyderabadCTF />
-
-        {/* Section 07 — Memory Scrapbook 3D Collage */}
+        {/* Section 06 — Memory Scrapbook 3D Collage */}
         <Memories />
 
-        {/* Section 08 — Things I Love About You */}
+        {/* Section 07 — Things I Love About You */}
         <LoveAboutYou />
 
-        {/* Section 09 — Community Birthday Wishes */}
+        {/* Section 08 — Community Birthday Wishes */}
         <BirthdayWishes />
 
-        {/* Section 10 — Progressive Love Letter */}
+        {/* Section 09 — Progressive Love Letter */}
         <LoveLetter />
 
-        {/* Section 11 — Grand Finale Celebration */}
+        {/* Section 10 — Grand Finale Celebration */}
         <Finale />
 
-        {/* Section 12 — Climax Proposal Page */}
+        {/* Section 11 — Climax Proposal Page */}
         <Proposal />
       </main>
     </div>

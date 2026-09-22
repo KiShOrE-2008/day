@@ -4,7 +4,6 @@ export default function CustomCursor() {
   const canvasRef = useRef(null);
   const [pos, setPos] = useState({ x: -100, y: -100 });
   const [isHovered, setIsHovered] = useState(false);
-  const [isCyber, setIsCyber] = useState(false);
 
   const particlesRef = useRef([]);
   const lastPosRef = useRef({ x: -100, y: -100 });
@@ -33,7 +32,6 @@ export default function CustomCursor() {
       '#FFFFFF', // Diamond white
     ];
 
-    const cyberColors = ['#00ff66', '#00e5ff', '#39ff14', '#ffffff'];
 
     // Helper to draw a sparkling 4-pointed star
     const drawStar = (ctx, cx, cy, spikes, outerRadius, innerRadius, color, alpha, rotation) => {
@@ -69,8 +67,8 @@ export default function CustomCursor() {
     };
 
     // Helper to create a single sparkle particle
-    const createParticle = (x, y, isBurst = false, isCyber = false) => {
-      const palette = isCyber ? cyberColors : colors;
+    const createParticle = (x, y, isBurst = false) => {
+      const palette = colors;
       const angle = Math.random() * Math.PI * 2;
       const speed = isBurst ? Math.random() * 3.5 + 1.5 : Math.random() * 1.2 + 0.3;
       const size = Math.random() * 4 + 3;
@@ -150,17 +148,6 @@ export default function CustomCursor() {
       const y = e.clientY;
       setPos({ x, y });
 
-      // Check if inside cyber section
-      const cyberElem = document.getElementById('hyderabad-ctf-section');
-      let cyberActive = false;
-      if (cyberElem) {
-        const rect = cyberElem.getBoundingClientRect();
-        if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
-          cyberActive = true;
-        }
-      }
-      setIsCyber(cyberActive);
-
       // Spawn trail sparkles when moved > 6px
       const dx = x - lastPosRef.current.x;
       const dy = y - lastPosRef.current.y;
@@ -169,7 +156,7 @@ export default function CustomCursor() {
       if (dist > 6) {
         const numToSpawn = Math.min(3, Math.floor(dist / 8));
         for (let i = 0; i < numToSpawn; i++) {
-          particlesRef.current.push(createParticle(x, y, false, cyberActive));
+          particlesRef.current.push(createParticle(x, y, false));
         }
         lastPosRef.current = { x, y };
       }
@@ -179,11 +166,10 @@ export default function CustomCursor() {
     const handleClick = (e) => {
       const x = e.clientX;
       const y = e.clientY;
-      const cyberActive = isCyber;
 
       // Burst 16 sparkling star particles on click
       for (let i = 0; i < 16; i++) {
-        particlesRef.current.push(createParticle(x, y, true, cyberActive));
+        particlesRef.current.push(createParticle(x, y, true));
       }
     };
 
@@ -212,7 +198,7 @@ export default function CustomCursor() {
       window.removeEventListener('click', handleClick);
       window.removeEventListener('mouseover', handleMouseOver);
     };
-  }, [isCyber]);
+  }, []);
 
   return (
     <>
@@ -225,9 +211,7 @@ export default function CustomCursor() {
       {/* Main Cursor Glow Ring */}
       <div
         className={`hidden md:block fixed pointer-events-none z-50 rounded-full transition-transform duration-150 ease-out transform -translate-x-1/2 -translate-y-1/2 ${
-          isCyber
-            ? 'w-10 h-10 border border-[#00ff66]/70 bg-[#00ff66]/10 shadow-[0_0_15px_rgba(0,255,106,0.5)]'
-            : isHovered
+          isHovered
             ? 'w-12 h-12 border border-[#B76E79] bg-[#B76E79]/20 shadow-[0_0_25px_rgba(183,110,121,0.4)] scale-125'
             : 'w-8 h-8 border border-white/30 bg-white/5 shadow-[0_0_12px_rgba(255,255,255,0.2)]'
         }`}
@@ -239,9 +223,7 @@ export default function CustomCursor() {
 
       {/* Center Dot */}
       <div
-        className={`hidden md:block fixed pointer-events-none z-50 w-2 h-2 rounded-full transition-colors duration-200 transform -translate-x-1/2 -translate-y-1/2 ${
-          isCyber ? 'bg-[#00ff66] shadow-[0_0_8px_#00ff66]' : 'bg-[#B76E79] shadow-[0_0_8px_#B76E79]'
-        }`}
+        className="hidden md:block fixed pointer-events-none z-50 w-2 h-2 rounded-full transition-colors duration-200 transform -translate-x-1/2 -translate-y-1/2 bg-[#B76E79] shadow-[0_0_8px_#B76E79]"
         style={{
           left: `${pos.x}px`,
           top: `${pos.y}px`,

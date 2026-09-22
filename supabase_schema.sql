@@ -15,9 +15,6 @@ CREATE TABLE IF NOT EXISTS public.birthday_wishes (
   photo_path TEXT, -- Storage path inside 'birthday-wish-photos' bucket
   approved BOOLEAN NOT NULL DEFAULT false,
   featured BOOLEAN NOT NULL DEFAULT false,
-  thank_you_sent BOOLEAN NOT NULL DEFAULT false,
-  thank_you_sent_at TIMESTAMPTZ,
-  thank_you_message TEXT,
   is_read BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   approved_at TIMESTAMPTZ,
@@ -25,10 +22,10 @@ CREATE TABLE IF NOT EXISTS public.birthday_wishes (
 );
 
 -- Migrations for existing tables (safe to re-run on existing DB)
+ALTER TABLE public.birthday_wishes DROP COLUMN IF EXISTS thank_you_sent;
+ALTER TABLE public.birthday_wishes DROP COLUMN IF EXISTS thank_you_sent_at;
+ALTER TABLE public.birthday_wishes DROP COLUMN IF EXISTS thank_you_message;
 ALTER TABLE public.birthday_wishes ADD COLUMN IF NOT EXISTS email TEXT CHECK (email IS NULL OR char_length(email) <= 100);
-ALTER TABLE public.birthday_wishes ADD COLUMN IF NOT EXISTS thank_you_sent BOOLEAN NOT NULL DEFAULT false;
-ALTER TABLE public.birthday_wishes ADD COLUMN IF NOT EXISTS thank_you_sent_at TIMESTAMPTZ;
-ALTER TABLE public.birthday_wishes ADD COLUMN IF NOT EXISTS thank_you_message TEXT;
 ALTER TABLE public.birthday_wishes ADD COLUMN IF NOT EXISTS is_read BOOLEAN NOT NULL DEFAULT false;
 
 -- Index for public wall queries (approved & featured sorting)

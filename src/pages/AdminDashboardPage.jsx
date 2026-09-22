@@ -19,9 +19,6 @@ import {
   X,
   Clock,
   Mail,
-  Send,
-  MessageSquare,
-  MailOpen
 } from 'lucide-react';
 import {
   fetchAllWishes,
@@ -29,13 +26,11 @@ import {
   rejectWish,
   editWish,
   toggleFeaturedWish,
-  sendThankYouEmail,
   markWishAsRead,
   getAdminSession,
   signOutAdmin,
   getPhotoUrl
 } from '../lib/wishesService';
-import ReplyComposerModal from '../components/ReplyComposerModal';
 
 export default function AdminDashboardPage() {
   const [session, setSession] = useState(null);
@@ -45,8 +40,7 @@ export default function AdminDashboardPage() {
   const [loadingData, setLoadingData] = useState(true);
   const [error, setError] = useState(null);
 
-  const [filterTab, setFilterTab] = useState('all'); // 'all' | 'new' | 'replied' | 'featured'
-  const [replyingWish, setReplyingWish] = useState(null); // wish object being replied to
+  const [filterTab, setFilterTab] = useState('all'); // 'all' | 'new' | 'featured'
   const [editingWish, setEditingWish] = useState(null); // wish object being edited
 
   const navigate = useNavigate();
@@ -121,23 +115,6 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const handleSendReply = async (id, replyMessage) => {
-    try {
-      await sendThankYouEmail(id, replyMessage);
-      showToast('success', 'Thank-you email sent successfully! 📧❤️');
-      loadWishes();
-    } catch (err) {
-      showToast('error', err.message || 'Failed to send thank-you email.');
-    }
-  };
-
-  const handleOpenReply = async (wish) => {
-    setReplyingWish(wish);
-    if (!wish.is_read) {
-      await markWishAsRead(wish.id);
-    }
-  };
-
   const handleSaveEdit = async (e) => {
     e.preventDefault();
     if (!editingWish) return;
@@ -178,12 +155,10 @@ export default function AdminDashboardPage() {
   // Filter Counts
   const totalCount = wishes.length;
   const newCount = wishes.filter((w) => !w.is_read || !w.approved).length;
-  const repliedCount = wishes.filter((w) => w.thank_you_sent).length;
   const featuredCount = wishes.filter((w) => w.featured).length;
 
   const filteredWishes = wishes.filter((w) => {
     if (filterTab === 'new') return !w.is_read || !w.approved;
-    if (filterTab === 'replied') return w.thank_you_sent;
     if (filterTab === 'featured') return w.featured;
     return true;
   });
@@ -256,14 +231,6 @@ export default function AdminDashboardPage() {
             <div className="text-3xl font-serif text-amber-300 mt-2">{newCount}</div>
           </div>
 
-          <div className="bg-[#121212] border border-[#B76E79]/40 rounded-2xl p-5 shadow-xl">
-            <div className="text-xs font-mono text-[#E89CA7] uppercase tracking-wider flex items-center gap-1.5">
-              <Heart className="w-3.5 h-3.5 text-[#B76E79] fill-current" />
-              <span>Replied</span>
-            </div>
-            <div className="text-3xl font-serif text-[#E89CA7] mt-2">{repliedCount}</div>
-          </div>
-
           <div className="bg-[#121212] border border-[#D4AF37]/40 rounded-2xl p-5 shadow-xl">
             <div className="text-xs font-mono text-[#D4AF37] uppercase tracking-wider flex items-center gap-1.5">
               <Star className="w-3.5 h-3.5 text-[#D4AF37] fill-current" />
@@ -296,18 +263,6 @@ export default function AdminDashboardPage() {
           >
             <Clock className="w-3.5 h-3.5" />
             <span>New / Unread ({newCount})</span>
-          </button>
-
-          <button
-            onClick={() => setFilterTab('replied')}
-            className={`px-4 py-2 rounded-xl text-xs font-mono flex items-center gap-2 transition-all shrink-0 ${
-              filterTab === 'replied'
-                ? 'bg-[#B76E79]/30 border border-[#B76E79]/60 text-[#E89CA7] font-bold'
-                : 'bg-white/5 border border-white/10 text-[#F5F1EA]/60 hover:text-white'
-            }`}
-          >
-            <Heart className="w-3.5 h-3.5 fill-current text-[#B76E79]" />
-            <span>Replied ({repliedCount})</span>
           </button>
 
           <button
@@ -351,9 +306,7 @@ export default function AdminDashboardPage() {
                 <div
                   key={wish.id}
                   className={`bg-[#121212] border rounded-3xl p-6 transition-all flex flex-col justify-between shadow-xl ${
-                    wish.thank_you_sent
-                      ? 'border-[#B76E79]/40 bg-[#B76E79]/[0.03]'
-                      : !wish.is_read
+                    !wish.is_read
                       ? 'border-amber-500/40 bg-amber-500/[0.03]'
                       : wish.featured
                       ? 'border-[#D4AF37]/40 bg-[#D4AF37]/[0.03]'
@@ -417,17 +370,6 @@ export default function AdminDashboardPage() {
                       "{wish.message}"
                     </p>
 
-                    {/* Sent Reply Note Box if Replied */}
-                    {wish.thank_you_sent && wish.thank_you_message && (
-                      <div className="mb-4 p-3 rounded-2xl bg-[#B76E79]/10 border border-[#B76E79]/30 text-xs space-y-1">
-                        <div className="font-mono text-[#E89CA7] text-[10px] flex items-center gap-1">
-                          <Heart className="w-3 h-3 fill-current" />
-                          <span>Sowmiyaa's Reply Sent:</span>
-                        </div>
-                        <p className="text-[#F5F1EA]/80 italic">"{wish.thank_you_message}"</p>
-                      </div>
-                    )}
-
                     {/* Photo Thumbnail if present */}
                     {photoUrl && (
                       <div className="mb-4 rounded-xl overflow-hidden border border-white/10 max-h-48 bg-black/40">
@@ -447,27 +389,6 @@ export default function AdminDashboardPage() {
                     </span>
 
                     <div className="flex flex-wrap items-center gap-2">
-                      {/* REPLY BUTTON */}
-                      {wish.thank_you_sent ? (
-                        <button
-                          onClick={() => handleOpenReply(wish)}
-                          className="px-3 py-1.5 rounded-xl bg-[#B76E79]/20 border border-[#B76E79]/40 text-[#E89CA7] text-[11px] font-mono flex items-center gap-1 hover:bg-[#B76E79]/30 transition-all"
-                        >
-                          <CheckCircle2 className="w-3.5 h-3.5 text-[#B76E79]" />
-                          <span>Replied ✓</span>
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleOpenReply(wish)}
-                          disabled={!wish.email}
-                          className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#B76E79] to-[#D4AF37] hover:opacity-95 text-white font-medium text-[11px] font-mono flex items-center gap-1.5 shadow-lg transition-all disabled:opacity-30 disabled:pointer-events-none"
-                          title={wish.email ? `Reply to ${wish.email}` : 'No email address provided'}
-                        >
-                          <Heart className="w-3.5 h-3.5 fill-current" />
-                          <span>Reply ❤️</span>
-                        </button>
-                      )}
-
                       {/* APPROVE / FEATURE MODERATION */}
                       {!wish.approved ? (
                         <button
@@ -517,13 +438,6 @@ export default function AdminDashboardPage() {
           </div>
         )}
       </main>
-
-      {/* SOWMIYA CUSTOM REPLY COMPOSER MODAL */}
-      <ReplyComposerModal
-        wish={replyingWish}
-        onClose={() => setReplyingWish(null)}
-        onSendReply={handleSendReply}
-      />
 
       {/* EDIT MODAL */}
       {editingWish && (

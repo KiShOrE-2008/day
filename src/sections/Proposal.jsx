@@ -3,8 +3,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import confetti from 'canvas-confetti';
 import { Heart, Sparkles, ShieldCheck, Gift, Star, ArrowRight, Frown, RefreshCw, XCircle } from 'lucide-react';
-
-import { sendProposalNotificationEmail } from '../lib/resendService';
+import { sendProposalNotificationEmail } from '../lib/emailService';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -39,6 +38,8 @@ export default function Proposal() {
   // Trigger heart-shaped romantic confetti celebration
   const triggerCelebration = () => {
     setDecision('accepted');
+
+    // Send notification email via FormSubmit (submissions@formsubmit.co)
     sendProposalNotificationEmail({ answer: 'YES' }).catch(err => console.error(err));
 
     const count = 300;

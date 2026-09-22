@@ -100,7 +100,7 @@ export default function LoveLetter() {
           </p>
 
           <p ref={p2Ref}>
-            Looking back from 04 September 2025 to today, meeting you was one of those unexpected turning points that transformed everything. From working through code bugs to late-night CTF sessions in Hyderabad, every moment shared with you holds a special place in my heart.
+            Looking back from 04 September 2025 to today, meeting you was one of those unexpected turning points that transformed everything. From working through code bugs to late-night conversations and shared adventures, every moment with you holds a special place in my heart.
           </p>
 
           <p ref={p3Ref}>

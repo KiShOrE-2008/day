@@ -1,6 +1,5 @@
 import { supabase, isSupabaseConfigured, BUCKET_NAME } from './supabase';
 import { compressImage, validateImageFile } from './imageCompressor';
-import { sendResendThankYouEmail } from './resendService';
 
 // ----------------------------------------------------------------------
 // SAMPLE MOCK WISHES FOR DEV FALLBACK MODE
@@ -17,8 +16,6 @@ const INITIAL_MOCK_WISHES = [
     featured: true,
     created_at: new Date(Date.now() - 3600000 * 24 * 2).toISOString(),
     approved_at: new Date(Date.now() - 3600000 * 24 * 2).toISOString(),
-    thank_you_sent: false,
-    thank_you_sent_at: null,
   },
   {
     id: 'mock-2',
@@ -31,8 +28,6 @@ const INITIAL_MOCK_WISHES = [
     featured: true,
     created_at: new Date(Date.now() - 3600000 * 24 * 1).toISOString(),
     approved_at: new Date(Date.now() - 3600000 * 24 * 1).toISOString(),
-    thank_you_sent: true,
-    thank_you_sent_at: new Date(Date.now() - 3600000 * 12).toISOString(),
   },
   {
     id: 'mock-3',
@@ -45,8 +40,6 @@ const INITIAL_MOCK_WISHES = [
     featured: true,
     created_at: new Date(Date.now() - 3600000 * 12).toISOString(),
     approved_at: new Date(Date.now() - 3600000 * 12).toISOString(),
-    thank_you_sent: false,
-    thank_you_sent_at: null,
   },
   {
     id: 'mock-4',
@@ -59,8 +52,6 @@ const INITIAL_MOCK_WISHES = [
     featured: false,
     created_at: new Date().toISOString(),
     approved_at: null,
-    thank_you_sent: false,
-    thank_you_sent_at: null,
   },
 ];
 
@@ -166,7 +157,6 @@ export async function submitWish({ name, email, relationship, message, photoFile
           photo_path,
           approved: false,
           featured: false,
-          thank_you_sent: false,
         },
       ]);
 
@@ -204,8 +194,6 @@ export async function submitWish({ name, email, relationship, message, photoFile
     featured: false,
     created_at: new Date().toISOString(),
     approved_at: null,
-    thank_you_sent: false,
-    thank_you_sent_at: null,
   };
 
   const list = getLocalWishes();
@@ -431,89 +419,7 @@ export async function toggleFeaturedWish(id, featuredState) {
 }
 
 // ----------------------------------------------------------------------
-// 9. SEND THANK YOU EMAIL / REPLY (ADMIN -> SENDER VIA RESEND / BACKEND)
-// ----------------------------------------------------------------------
-export async function sendThankYouEmail(id, replyMessage = '') {
-  const timestamp = new Date().toISOString();
-  const cleanReply = (replyMessage || '').trim();
-
-  let targetWish = null;
-
-  if (isSupabaseConfigured() && supabase) {
-    // 1. Fetch wish details to get sender email & message
-    const { data: wish, error: fetchErr } = await supabase
-      .from('birthday_wishes')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (fetchErr || !wish) {
-      console.error('Wish fetch error:', fetchErr);
-      throw new Error('Could not find wish record to send reply.');
-    }
-
-    targetWish = wish;
-
-    if (!targetWish.email) {
-      throw new Error('This wish does not have a sender email address attached.');
-    }
-
-    // 2. Dispatch thank-you email via Resend API
-    await sendResendThankYouEmail({
-      toEmail: targetWish.email,
-      recipientName: targetWish.name,
-      replyMessage: cleanReply,
-      originalMessage: targetWish.message,
-    });
-
-    // 3. Mark wish as thank_you_sent in database
-    const { error: updateErr } = await supabase
-      .from('birthday_wishes')
-      .update({
-        thank_you_sent: true,
-        thank_you_sent_at: timestamp,
-        thank_you_message: cleanReply || null,
-        is_read: true,
-      })
-      .eq('id', id);
-
-    if (updateErr) {
-      console.error('Failed to mark thank-you sent:', updateErr);
-      throw new Error('Email dispatched, but failed to update status in database.');
-    }
-    return true;
-  }
-
-  // Dev fallback
-  const list = getLocalWishes();
-  const idx = list.findIndex((w) => w.id === id);
-  if (idx !== -1) {
-    targetWish = list[idx];
-    if (!targetWish.email) {
-      throw new Error('This wish does not have a sender email address attached.');
-    }
-
-    await sendResendThankYouEmail({
-      toEmail: targetWish.email,
-      recipientName: targetWish.name,
-      replyMessage: cleanReply,
-      originalMessage: targetWish.message,
-    });
-
-    list[idx].thank_you_sent = true;
-    list[idx].thank_you_sent_at = timestamp;
-    list[idx].thank_you_message = cleanReply || null;
-    list[idx].is_read = true;
-    saveLocalWishes(list);
-  } else {
-    throw new Error('Wish record not found.');
-  }
-
-  return true;
-}
-
-// ----------------------------------------------------------------------
-// 10. MARK WISH AS READ
+// 9. MARK WISH AS READ
 // ----------------------------------------------------------------------
 export async function markWishAsRead(id) {
   if (isSupabaseConfigured() && supabase) {

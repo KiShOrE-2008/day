@@ -15,14 +15,6 @@ const photoList = [
     pos: 'top-10 left-4 sm:left-12',
   },
   {
-    id: 2,
-    url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=600&q=80',
-    title: 'Hyderabad Days',
-    caption: 'Exploring together after the CTF.',
-    rotate: '8deg',
-    pos: 'top-20 right-4 sm:right-16',
-  },
-  {
     id: 3,
     url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=600&q=80',
     title: 'Miyaaaaww Moment',
