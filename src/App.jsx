@@ -16,6 +16,9 @@ if (typeof window !== 'undefined') {
   window.ScrollTrigger = ScrollTrigger;
 }
 
+// Visual & Interactive Utilities
+import SecretEasterEgg from './components/SecretEasterEgg';
+
 // Story Sections
 import Intro from './sections/Intro';
 import BirthdayReveal from './sections/BirthdayReveal';
@@ -24,7 +27,9 @@ import Timeline from './sections/Timeline';
 import Memories from './sections/Memories';
 import LoveAboutYou from './sections/LoveAboutYou';
 import BirthdayWishes from './sections/BirthdayWishes';
+import OpenWhenLetters from './sections/OpenWhenLetters';
 import LoveLetter from './sections/LoveLetter';
+import TimeCapsule from './sections/TimeCapsule';
 import Finale from './sections/Finale';
 import Proposal from './sections/Proposal';
 
@@ -81,41 +86,48 @@ function HomeStory() {
       {/* Visual Enhancers */}
       <FilmGrain />
       <CustomCursor />
+      <SecretEasterEgg />
 
       {/* Navigation & Controls */}
       <Navbar />
       <AudioController />
 
-      {/* Main 10 Story Sections */}
+      {/* Main Narrative Story Sections */}
       <main className="relative z-10 w-full overflow-hidden">
-        {/* Section 01 — Movie Opening Intro */}
+        {/* 01. Movie Opening Intro */}
         <Intro />
 
-        {/* Section 02 & 03 — Sowmiya Identity & 29 Sept Birthday Reveal */}
+        {/* 02. Sowmiya Identity & 29 Sept Birthday Reveal */}
         <BirthdayReveal />
 
-        {/* Section 04 — First Meeting 04.09.2025 Focus */}
+        {/* 03. First Meeting (04.09.2025 Focus) */}
         <FirstMeeting />
 
-        {/* Section 05 — The Journey Vertical Timeline */}
+        {/* 04. Our Journey Vertical Timeline */}
         <Timeline />
 
-        {/* Section 06 — Memory Scrapbook 3D Collage */}
+        {/* 05. Memory Scrapbook Collage */}
         <Memories />
 
-        {/* Section 07 — Things I Love About You */}
+        {/* 06. Things I Love About You */}
         <LoveAboutYou />
 
-        {/* Section 08 — Community Birthday Wishes */}
+        {/* 07. Community Birthday Wishes */}
         <BirthdayWishes />
 
-        {/* Section 09 — Progressive Love Letter */}
+        {/* 08. Open When... Letters */}
+        <OpenWhenLetters />
+
+        {/* 09. Progressive Love Letter */}
         <LoveLetter />
 
-        {/* Section 10 — Grand Finale Celebration */}
+        {/* 10. Time Capsule (29.09.2027) */}
+        <TimeCapsule />
+
+        {/* 11. Grand Finale Celebration */}
         <Finale />
 
-        {/* Section 11 — Climax Proposal Page */}
+        {/* 12. Climax Proposal / Forever */}
         <Proposal />
       </main>
     </div>

@@ -19,9 +19,11 @@ export default function Navbar() {
     { id: 'timeline-section', label: '03. Journey', short: 'Journey' },
     { id: 'memories-section', label: '04. Memories', short: 'Memories' },
     { id: 'birthday-wishes-section', label: '05. Wishes', short: 'Wishes' },
-    { id: 'love-letter-section', label: '06. Letter', short: 'Letter' },
-    { id: 'finale-section', label: '07. Finale', short: 'Finale' },
-    { id: 'proposal-section', label: '08. Proposal', short: 'Forever', icon: Heart },
+    { id: 'open-when-section', label: '06. Open When', short: 'Open When' },
+    { id: 'love-letter-section', label: '07. Letter', short: 'Letter' },
+    { id: 'time-capsule-section', label: '08. Time Capsule', short: 'Capsule' },
+    { id: 'finale-section', label: '09. Finale', short: 'Finale' },
+    { id: 'proposal-section', label: '10. Proposal', short: 'Forever', icon: Heart },
   ];
 
   // GSAP Entrance animation on mount
