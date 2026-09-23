@@ -16,6 +16,9 @@ if (typeof window !== 'undefined') {
   window.ScrollTrigger = ScrollTrigger;
 }
 
+// 3D Persistent Universe Engine
+import World from './components/3d/World';
+
 // Visual & Interactive Utilities
 import SecretEasterEgg from './components/SecretEasterEgg';
 
@@ -54,8 +57,12 @@ function HomeStory() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Scroll to targeted section if hash exists (e.g. /#birthday-wishes-section)
+  // Reset scroll to top (first page) on reload unless a specific #hash URL is present
   useEffect(() => {
+    if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+
     const hash = location.hash || window.location.hash;
     if (hash) {
       const targetId = hash.replace('#', '');
@@ -78,11 +85,27 @@ function HomeStory() {
         clearTimeout(timer1);
         clearTimeout(timer2);
       };
+    } else {
+      // Force scroll to top (01. Intro section) on initial page load / refresh
+      window.scrollTo(0, 0);
+      if (window.lenis) {
+        window.lenis.scrollTo(0, { immediate: true });
+      }
+      const resetTimer = setTimeout(() => {
+        window.scrollTo(0, 0);
+        if (window.lenis) {
+          window.lenis.scrollTo(0, { immediate: true });
+        }
+      }, 100);
+      return () => clearTimeout(resetTimer);
     }
   }, [location]);
 
   return (
     <div className="relative min-h-screen bg-[#080808] text-[#F5F1EA] selection:bg-[#B76E79]/30 selection:text-white">
+      {/* Persistent 3D WebGL Canvas Layer */}
+      <World />
+
       {/* Visual Enhancers */}
       <FilmGrain />
       <CustomCursor />
