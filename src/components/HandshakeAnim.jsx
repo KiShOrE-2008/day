@@ -54,7 +54,7 @@ export default function HandshakeAnim() {
           </g>
 
           {/* Radiating Light Particles */}
-          <circle cx="160" cy="95" r="35" stroke="#B76E79" strokeWidth="1" strokeDasharray="4 4" className="animate-spin" />
+          <circle cx="160" cy="95" r="35" stroke="#B76E79" strokeWidth="1" strokeDasharray="4 4" className="animate-spin" style={{ transformOrigin: '160px 95px' }} />
 
           {/* Gradients */}
           <defs>

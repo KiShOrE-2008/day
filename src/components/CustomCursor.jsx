@@ -3,12 +3,20 @@ import React, { useEffect, useRef, useState } from 'react';
 export default function CustomCursor() {
   const canvasRef = useRef(null);
   const [pos, setPos] = useState({ x: -100, y: -100 });
+  const [hasMoved, setHasMoved] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   const particlesRef = useRef([]);
   const lastPosRef = useRef({ x: -100, y: -100 });
 
   useEffect(() => {
+    // Detect touch device
+    if (window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window) {
+      setIsTouchDevice(true);
+      return;
+    }
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -31,7 +39,6 @@ export default function CustomCursor() {
       '#FFB7C5', // Sakura pink
       '#FFFFFF', // Diamond white
     ];
-
 
     // Helper to draw a sparkling 4-pointed star
     const drawStar = (ctx, cx, cy, spikes, outerRadius, innerRadius, color, alpha, rotation) => {
@@ -147,6 +154,7 @@ export default function CustomCursor() {
       const x = e.clientX;
       const y = e.clientY;
       setPos({ x, y });
+      if (!hasMoved) setHasMoved(true);
 
       // Spawn trail sparkles when moved > 6px
       const dx = x - lastPosRef.current.x;
@@ -167,7 +175,6 @@ export default function CustomCursor() {
       const x = e.clientX;
       const y = e.clientY;
 
-      // Burst 16 sparkling star particles on click
       for (let i = 0; i < 16; i++) {
         particlesRef.current.push(createParticle(x, y, true));
       }
@@ -198,7 +205,9 @@ export default function CustomCursor() {
       window.removeEventListener('click', handleClick);
       window.removeEventListener('mouseover', handleMouseOver);
     };
-  }, []);
+  }, [hasMoved]);
+
+  if (isTouchDevice) return null;
 
   return (
     <>
@@ -209,26 +218,30 @@ export default function CustomCursor() {
       />
 
       {/* Main Cursor Glow Ring */}
-      <div
-        className={`hidden md:block fixed pointer-events-none z-50 rounded-full transition-transform duration-150 ease-out transform -translate-x-1/2 -translate-y-1/2 ${
-          isHovered
-            ? 'w-12 h-12 border border-[#B76E79] bg-[#B76E79]/20 shadow-[0_0_25px_rgba(183,110,121,0.4)] scale-125'
-            : 'w-8 h-8 border border-white/30 bg-white/5 shadow-[0_0_12px_rgba(255,255,255,0.2)]'
-        }`}
-        style={{
-          left: `${pos.x}px`,
-          top: `${pos.y}px`,
-        }}
-      />
+      {hasMoved && (
+        <>
+          <div
+            className={`hidden md:block fixed pointer-events-none z-50 rounded-full transition-transform duration-150 ease-out transform -translate-x-1/2 -translate-y-1/2 ${
+              isHovered
+                ? 'w-12 h-12 border border-[#B76E79] bg-[#B76E79]/20 shadow-[0_0_25px_rgba(183,110,121,0.4)] scale-125'
+                : 'w-8 h-8 border border-white/30 bg-white/5 shadow-[0_0_12px_rgba(255,255,255,0.2)]'
+            }`}
+            style={{
+              left: `${pos.x}px`,
+              top: `${pos.y}px`,
+            }}
+          />
 
-      {/* Center Dot */}
-      <div
-        className="hidden md:block fixed pointer-events-none z-50 w-2 h-2 rounded-full transition-colors duration-200 transform -translate-x-1/2 -translate-y-1/2 bg-[#B76E79] shadow-[0_0_8px_#B76E79]"
-        style={{
-          left: `${pos.x}px`,
-          top: `${pos.y}px`,
-        }}
-      />
+          {/* Center Dot */}
+          <div
+            className="hidden md:block fixed pointer-events-none z-50 w-2 h-2 rounded-full transition-colors duration-200 transform -translate-x-1/2 -translate-y-1/2 bg-[#B76E79] shadow-[0_0_8px_#B76E79]"
+            style={{
+              left: `${pos.x}px`,
+              top: `${pos.y}px`,
+            }}
+          />
+        </>
+      )}
     </>
   );
 }

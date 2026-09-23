@@ -146,7 +146,7 @@ export default function AdminDashboardPage() {
       <div className="min-h-screen bg-[#080808] flex items-center justify-center text-[#F5F1EA]">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-[#B76E79] border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs font-mono text-[#F5F1EA]/60">Opening Miyaaaaww's Birthday Inbox...</p>
+          <p className="text-xs font-mono text-[#F5F1EA]/60">Authenticating Admin Session...</p>
         </div>
       </div>
     );
@@ -168,23 +168,23 @@ export default function AdminDashboardPage() {
       {/* Top Admin Header */}
       <header className="max-w-6xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-8 border-b border-white/10">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="px-3 py-1 rounded-full bg-[#B76E79]/20 border border-[#B76E79]/40 text-[#E89CA7] text-xs font-mono uppercase tracking-wider flex items-center gap-1.5">
-              <Heart className="w-3.5 h-3.5 fill-current" />
-              <span>Sowmiyaa Private Inbox</span>
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-mono uppercase tracking-wider flex items-center gap-1.5 font-bold shadow-[0_0_15px_rgba(245,158,11,0.2)]">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>System Admin Moderation Panel</span>
             </span>
+
             <span className="text-xs text-[#F5F1EA]/40 font-mono hidden sm:inline">
-              {session?.user?.email
-                ? `${session.user.email.substring(0, 3)}•••`
-                : ''}
+              {session?.user?.email}
             </span>
           </div>
+
           <h1 className="text-2xl md:text-3xl font-serif mt-2 text-[#F5F1EA]">
-            Miyaaaaww's Birthday Inbox ❤️
+            Site Moderation & Wish Management 🛡️
           </h1>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <button
             onClick={loadWishes}
             className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono flex items-center gap-2 transition-colors"

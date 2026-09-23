@@ -6,11 +6,12 @@ import {
   X,
   CheckCircle2,
   AlertCircle,
-  ArrowLeft,
   Image as ImageIcon,
   Sparkles,
   FileCheck,
-  RefreshCw
+  RefreshCw,
+  Scan,
+  ShieldCheck
 } from 'lucide-react';
 import { submitWish } from '../lib/wishesService';
 import { validateImageFile } from '../lib/imageCompressor';
@@ -24,6 +25,7 @@ export default function WishSubmissionPage() {
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isScanningPhoto, setIsScanningPhoto] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [statusStep, setStatusStep] = useState('');
@@ -33,7 +35,7 @@ export default function WishSubmissionPage() {
 
   const fileInputRef = useRef(null);
 
-  // Handle Photo File Selection & Client Validation
+  // Handle Photo File Selection & Client Validation with Scanner Beam Animation
   const handleFileSelect = (file) => {
     if (!file) return;
 
@@ -45,10 +47,12 @@ export default function WishSubmissionPage() {
       return;
     }
 
+    setIsScanningPhoto(true);
     setPhotoFile(file);
     const reader = new FileReader();
     reader.onloadend = () => {
       setPhotoPreview(reader.result);
+      setTimeout(() => setIsScanningPhoto(false), 900);
     };
     reader.readAsDataURL(file);
   };
@@ -78,6 +82,7 @@ export default function WishSubmissionPage() {
   const handleRemovePhoto = () => {
     setPhotoFile(null);
     setPhotoPreview(null);
+    setIsScanningPhoto(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -108,18 +113,18 @@ export default function WishSubmissionPage() {
     }
 
     setLoading(true);
-    setUploadProgress(15);
+    setUploadProgress(30);
 
     try {
       if (photoFile) {
         setStatusStep('Compressing & optimizing photo...');
-        setUploadProgress(40);
-        await new Promise(r => setTimeout(r, 400));
-        setUploadProgress(75);
-        setStatusStep('Uploading memory to cloud...');
+        setUploadProgress(60);
+        await new Promise(r => setTimeout(r, 300));
+        setUploadProgress(85);
+        setStatusStep('Uploading memory...');
       } else {
         setStatusStep('Sending your birthday wish...');
-        setUploadProgress(60);
+        setUploadProgress(75);
       }
 
       await submitWish({
@@ -131,7 +136,6 @@ export default function WishSubmissionPage() {
       });
 
       setUploadProgress(100);
-      await new Promise(r => setTimeout(r, 300));
       setSubmitted(true);
     } catch (err) {
       console.error('Submission failed:', err);
@@ -144,19 +148,12 @@ export default function WishSubmissionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#080808] text-[#F5F1EA] px-4 py-8 relative overflow-hidden">
-      {/* Background Glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#B76E79]/10 rounded-full filter blur-[120px] pointer-events-none" />
+    <div className="min-h-screen bg-[#080808] text-[#F5F1EA] px-4 py-8 relative overflow-hidden selection:bg-[#B76E79]/30 selection:text-white">
+      {/* Background Ambient Glowing Halos */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-gradient-to-tr from-[#B76E79]/15 via-[#D4AF37]/10 to-transparent rounded-full filter blur-[150px] pointer-events-none" />
 
       {/* Top Header Links */}
-      <header className="relative z-10 max-w-xl mx-auto flex items-center justify-between mb-8">
-        <Link
-          to="/#birthday-wishes-section"
-          className="inline-flex items-center gap-1.5 text-xs text-[#F5F1EA]/70 hover:text-white font-mono transition-colors"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Back to Story</span>
-        </Link>
+      <header className="relative z-10 max-w-xl mx-auto flex items-center justify-end mb-8">
         <Link
           to="/wishes"
           className="inline-flex items-center gap-1.5 text-xs text-[#E89CA7] hover:underline font-mono"
@@ -169,9 +166,9 @@ export default function WishSubmissionPage() {
       {/* Main Container */}
       <main className="relative z-10 max-w-xl mx-auto w-full">
         {submitted ? (
-          /* SUCCESS STATE */
-          <div className="bg-[#121212]/90 border border-[#B76E79]/40 rounded-3xl p-8 md:p-12 text-center backdrop-blur-xl shadow-[0_0_50px_rgba(183,110,121,0.2)] animate-fade-in">
-            <div className="w-16 h-16 bg-[#B76E79]/20 text-[#E89CA7] rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_20px_rgba(183,110,121,0.4)] animate-bounce">
+          /* SUCCESS STATE CARD (3D Entrance) */
+          <div className="bg-[#121212]/90 border border-[#B76E79]/40 rounded-3xl p-8 md:p-12 text-center backdrop-blur-xl shadow-[0_0_80px_rgba(183,110,121,0.3)] animate-fade-in [transform:perspective(1000px)_rotateY(0deg)] transition-all">
+            <div className="w-16 h-16 bg-gradient-to-tr from-[#B76E79] to-[#E89CA7] text-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(183,110,121,0.6)] animate-bounce">
               <Heart className="w-8 h-8 fill-current" />
             </div>
 
@@ -179,20 +176,21 @@ export default function WishSubmissionPage() {
               Your wish has been sent ❤️
             </h2>
 
-            <p className="text-sm md:text-base text-[#F5F1EA]/70 mb-8 leading-relaxed">
+            <p className="text-sm md:text-base text-[#F5F1EA]/70 mb-8 leading-relaxed font-light">
               Thank you so much! Your message has been safely delivered and will appear on Miyaaaaww's birthday wall after approval.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
                 to="/#birthday-wishes-section"
-                className="w-full sm:w-auto px-6 py-3 rounded-full bg-[#B76E79] hover:bg-[#A35D68] text-white font-medium text-sm transition-all shadow-lg hover:shadow-[#B76E79]/30"
+                className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-gradient-to-r from-[#B76E79] to-[#D4AF37] hover:brightness-110 text-white font-medium text-xs font-mono transition-all shadow-lg hover:shadow-[#B76E79]/30"
               >
-                Return to Story
+                RETURN TO STORY
               </Link>
               <button
                 onClick={() => {
                   setSubmitted(false);
+                  setShow3DSendAnim(false);
                   setName('');
                   setEmail('');
                   setRelationship('');
@@ -200,25 +198,28 @@ export default function WishSubmissionPage() {
                   setPhotoFile(null);
                   setPhotoPreview(null);
                 }}
-                className="w-full sm:w-auto px-6 py-3 rounded-full border border-white/10 hover:bg-white/5 text-[#F5F1EA]/80 text-sm transition-all"
+                className="w-full sm:w-auto px-7 py-3.5 rounded-full border border-white/20 hover:bg-white/10 text-[#F5F1EA] text-xs font-mono transition-all"
               >
-                Send Another Wish
+                SEND ANOTHER WISH
               </button>
             </div>
           </div>
         ) : (
           /* SUBMISSION FORM */
-          <div className="bg-[#121212]/80 border border-white/10 rounded-3xl p-6 md:p-10 backdrop-blur-xl shadow-2xl">
+          <div className="bg-[#121212]/80 border border-white/15 rounded-3xl p-6 md:p-10 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] relative group overflow-hidden">
+            {/* Shimmering Top Glass Border Line */}
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#B76E79]/50 to-transparent" />
+
             {/* Header Banner */}
             <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#B76E79]/15 border border-[#B76E79]/30 text-[#E89CA7] text-xs font-mono uppercase tracking-widest mb-3">
-                <Heart className="w-3.5 h-3.5 fill-current" />
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#B76E79]/15 border border-[#B76E79]/35 text-[#E89CA7] text-xs font-mono uppercase tracking-widest mb-3 shadow-[0_0_15px_rgba(183,110,121,0.2)]">
+                <Heart className="w-3.5 h-3.5 fill-current text-[#B76E79]" />
                 <span>For Miyaaaaww</span>
               </div>
-              <h1 className="text-2xl md:text-3xl font-serif text-[#F5F1EA]">
+              <h1 className="text-2xl md:text-3xl font-serif text-[#F5F1EA] drop-shadow-md">
                 Leave Her A Birthday Wish
               </h1>
-              <p className="text-xs md:text-sm text-[#F5F1EA]/60 mt-2">
+              <p className="text-xs md:text-sm text-[#F5F1EA]/60 mt-2 font-light">
                 Share a memory, a note of love, or birthday wishes for Sowmiya ❤️
               </p>
             </div>
@@ -297,69 +298,85 @@ export default function WishSubmissionPage() {
                 </div>
               </div>
 
-              {/* Animated Drag & Drop Photo Upload */}
+              {/* 📸 ANIMATED 3D PHOTO UPLOAD CONTAINER */}
               <div>
                 <label className="block text-xs font-mono uppercase tracking-wider text-[#F5F1EA]/70 mb-2">
                   Add a Photo <span className="text-[#F5F1EA]/40">(Optional, Max 5 MB)</span>
                 </label>
 
                 {photoPreview ? (
-                  /* Animated Selected Photo Card */
-                  <div className="relative rounded-2xl overflow-hidden border border-[#B76E79]/50 bg-black/60 group p-3 transition-all duration-300 shadow-[0_0_30px_rgba(183,110,121,0.2)] animate-fade-in">
-                    <div className="relative h-48 rounded-xl overflow-hidden">
+                  /* 3D SCANNED ATTACHED PHOTO CARD */
+                  <div className="relative rounded-2xl overflow-hidden border border-[#B76E79]/60 bg-black/80 group/photo p-3 transition-all duration-500 shadow-[0_0_40px_rgba(183,110,121,0.25)] animate-fade-in [perspective:1000px]">
+                    <div className="relative h-52 rounded-xl overflow-hidden">
                       <img
                         src={photoPreview}
                         alt="Photo preview"
-                        className="w-full h-full object-cover rounded-xl transition-transform duration-500 group-hover:scale-105"
+                        className={`w-full h-full object-cover rounded-xl transition-transform duration-700 ${
+                          isScanningPhoto ? 'scale-110 filter brightness-125' : 'group-hover/photo:scale-105'
+                        }`}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/30 pointer-events-none" />
 
-                      {/* Success Badge */}
-                      <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 border border-[#00ff66]/40 text-[#00ff66] text-xs font-mono backdrop-blur-md">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span>Photo Attached</span>
+                      {/* 3D Laser Scanner Beam Animation Line */}
+                      {isScanningPhoto && (
+                        <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#00ff66] to-transparent shadow-[0_0_20px_#00ff66] animate-pulse top-0 animate-bounce" />
+                      )}
+
+                      {/* Status Badge */}
+                      <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/70 border border-[#00ff66]/50 text-[#00ff66] text-xs font-mono backdrop-blur-md shadow-md">
+                        {isScanningPhoto ? (
+                          <>
+                            <Scan className="w-3.5 h-3.5 animate-spin text-[#00ff66]" />
+                            <span>Scanning & Optimizing...</span>
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>Photo Verified ✨</span>
+                          </>
+                        )}
                       </div>
 
                       {/* Remove Button */}
                       <button
                         type="button"
                         onClick={handleRemovePhoto}
-                        className="absolute top-3 right-3 bg-black/70 hover:bg-red-600/90 text-white p-2 rounded-full backdrop-blur-md transition-all transform hover:rotate-90 hover:scale-110"
+                        className="absolute top-3 right-3 bg-black/80 hover:bg-red-600/90 text-white p-2 rounded-full backdrop-blur-md transition-all transform hover:rotate-90 hover:scale-110 border border-white/20"
                         title="Remove photo"
                       >
                         <X className="w-4 h-4" />
                       </button>
                     </div>
 
-                    <div className="pt-2 px-1 flex items-center justify-between text-xs font-mono text-[#F5F1EA]/70">
-                      <span className="truncate max-w-[220px]">{photoFile?.name}</span>
-                      <span className="text-[#E89CA7] shrink-0">
+                    <div className="pt-3 px-1 flex items-center justify-between text-xs font-mono text-[#F5F1EA]/80">
+                      <span className="truncate max-w-[220px] font-medium">{photoFile?.name}</span>
+                      <span className="text-[#E89CA7] shrink-0 font-semibold">
                         {photoFile ? `${(photoFile.size / (1024 * 1024)).toFixed(2)} MB` : ''}
                       </span>
                     </div>
                   </div>
                 ) : (
-                  /* Animated Drag & Drop Upload Zone */
+                  /* 3D TILT DRAG & DROP UPLOAD ZONE */
                   <div
                     onClick={() => fileInputRef.current?.click()}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                    className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-300 cursor-pointer overflow-hidden group ${
+                    className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-300 cursor-pointer overflow-hidden group/zone [transform-style:preserve-3d] ${
                       isDragging
-                        ? 'border-[#00ff66] bg-[#00ff66]/10 scale-[1.02] shadow-[0_0_35px_rgba(0,255,106,0.3)]'
+                        ? 'border-[#00ff66] bg-[#00ff66]/10 scale-[1.02] shadow-[0_0_40px_rgba(0,255,106,0.35)]'
                         : 'border-white/20 hover:border-[#B76E79] bg-white/[0.02] hover:bg-[#B76E79]/5 shadow-inner'
                     }`}
                   >
-                    {/* Floating Glow Radial */}
-                    <div className="absolute inset-0 bg-radial from-[#B76E79]/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                    {/* Glowing Shimmer Arc */}
+                    <div className="absolute inset-0 bg-radial from-[#B76E79]/15 via-transparent to-transparent opacity-0 group-hover/zone:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
                     {/* Animated Upload Icon Badge */}
-                    <div className="relative w-14 h-14 rounded-full bg-white/5 group-hover:bg-[#B76E79]/20 border border-white/10 group-hover:border-[#B76E79]/40 text-[#E89CA7] flex items-center justify-center mx-auto mb-3 transition-all duration-300 group-hover:scale-110 shadow-lg">
-                      <Upload className={`w-6 h-6 transition-transform duration-300 ${isDragging ? 'animate-bounce text-[#00ff66]' : 'group-hover:-translate-y-1'}`} />
+                    <div className="relative w-14 h-14 rounded-full bg-white/5 group-hover/zone:bg-[#B76E79]/20 border border-white/10 group-hover/zone:border-[#B76E79]/40 text-[#E89CA7] flex items-center justify-center mx-auto mb-3 transition-all duration-300 group-hover/zone:scale-110 shadow-lg">
+                      <Upload className={`w-6 h-6 transition-transform duration-300 ${isDragging ? 'animate-bounce text-[#00ff66]' : 'group-hover/zone:-translate-y-1'}`} />
                     </div>
 
-                    <p className="text-sm text-[#F5F1EA] font-medium group-hover:text-white transition-colors">
+                    <p className="text-sm text-[#F5F1EA] font-medium group-hover/zone:text-white transition-colors">
                       {isDragging ? '✨ Drop photo here to attach ✨' : '+ Click or drag photo to attach with wish'}
                     </p>
                     <p className="text-xs text-[#F5F1EA]/40 mt-1 font-mono">
@@ -377,7 +394,7 @@ export default function WishSubmissionPage() {
                 />
               </div>
 
-              {/* Uploading Progress Bar (Active when loading) */}
+              {/* Uploading Progress Bar */}
               {loading && (
                 <div className="space-y-2 animate-fade-in pt-1">
                   <div className="flex justify-between text-xs font-mono text-[#E89CA7]">
@@ -395,16 +412,17 @@ export default function WishSubmissionPage() {
                 </div>
               )}
 
-              {/* Explicit Privacy Notice */}
-              <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/5 text-[11px] text-[#F5F1EA]/50 leading-normal">
-                🔒 <strong className="text-[#F5F1EA]/70">Privacy Notice:</strong> Your message and optional photo may appear on Sowmiya's birthday website after admin approval.
+              {/* Privacy Notice */}
+              <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/5 text-[11px] text-[#F5F1EA]/50 leading-normal flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-[#B76E79] shrink-0" />
+                <span><strong className="text-[#F5F1EA]/70">Privacy Notice:</strong> Your message and optional photo will appear on Sowmiya's birthday wall after admin approval.</span>
               </div>
 
-              {/* Submit Button */}
+              {/* 🚀 3D PERSPECTIVE SEND BUTTON */}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-4 rounded-xl bg-gradient-to-r from-[#B76E79] to-[#E89CA7] hover:opacity-95 text-white font-medium text-sm transition-all shadow-lg hover:shadow-[#B76E79]/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-4 rounded-xl bg-gradient-to-r from-[#B76E79] via-[#D4AF37] to-[#E89CA7] hover:brightness-110 text-white font-medium text-sm font-mono tracking-wider transition-all duration-300 shadow-[0_10px_30px_rgba(183,110,121,0.4)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer active:scale-95 [transform:perspective(600px)] hover:[transform:perspective(600px)_translateZ(8px)]"
               >
                 {loading ? (
                   <>
@@ -414,7 +432,7 @@ export default function WishSubmissionPage() {
                 ) : (
                   <>
                     <span>SEND WISH</span>
-                    <Heart className="w-4 h-4 fill-current" />
+                    <Heart className="w-4.5 h-4.5 fill-current text-white animate-pulse" />
                   </>
                 )}
               </button>
@@ -430,3 +448,4 @@ export default function WishSubmissionPage() {
     </div>
   );
 }
+

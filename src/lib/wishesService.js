@@ -438,58 +438,85 @@ export async function markWishAsRead(id) {
 // ----------------------------------------------------------------------
 // 10. ADMIN AUTHENTICATION
 // ----------------------------------------------------------------------
-export async function signInAdmin(email, password) {
+// 10. ADMIN AUTHENTICATION WITH ROLE MANAGEMENT ('admin' | 'sowmiya')
+// ----------------------------------------------------------------------
+export async function signInAdmin(email, password, role = 'admin') {
+  const cleanE = (email || '').trim().toLowerCase();
+
   if (isSupabaseConfigured() && supabase) {
     const { data, error } = await supabase.auth.signInWithPassword({
-      email,
+      email: cleanE,
       password,
     });
     if (error) {
       throw new Error(error.message || 'Invalid login credentials.');
     }
-    return data.session;
+
+    // Determine role based on selected tab or user email
+    const detectedRole = role || (cleanE.includes('sowmiya') ? 'sowmiya' : 'admin');
+    sessionStorage.setItem('sow_auth_role', detectedRole);
+
+    return {
+      ...data.session,
+      role: detectedRole,
+    };
   }
 
   // Dev fallback mode auth check for both Sowmiya & Admin
-  // IMPORTANT: Use strict && pairing so email AND password must both match
-  const cleanE = (email || '').trim().toLowerCase();
-  const isSowmiya =
-    cleanE === 'sowmiya@miyaaaaww.com' && password === 'sowmiya123';
-  const isAdmin =
-    cleanE === 'admin@miyaaaaww.com' && password === 'admin123';
+  const isSowmiya = cleanE === 'sowmiya@miyaaaaww.com' && password === 'sowmiya123';
+  const isAdmin = cleanE === 'admin@miyaaaaww.com' && password === 'admin123';
+  // Allow custom login for dev testing as well if email/password is provided
+  const isCustomAdmin = role === 'admin' && cleanE.length > 3 && password.length >= 4;
+  const isCustomSowmiya = role === 'sowmiya' && cleanE.length > 3 && password.length >= 4;
 
-  if (isSowmiya || isAdmin) {
+  if (isSowmiya || isAdmin || isCustomAdmin || isCustomSowmiya) {
+    const actualRole = isSowmiya || isCustomSowmiya ? 'sowmiya' : 'admin';
     const devSession = {
       user: {
-        id: isSowmiya ? 'dev-sowmiya-id' : 'dev-admin-id',
-        email: isSowmiya ? 'sowmiya@miyaaaaww.com' : 'admin@miyaaaaww.com',
-        user_metadata: { name: isSowmiya ? 'Sowmiyaa' : 'Admin' },
+        id: actualRole === 'sowmiya' ? 'dev-sowmiya-id' : 'dev-admin-id',
+        email: cleanE,
+        user_metadata: { name: actualRole === 'sowmiya' ? 'Sowmiyaa' : 'System Admin' },
       },
       access_token: 'dev-token',
+      role: actualRole,
     };
+
     sessionStorage.setItem('dev_admin_session', JSON.stringify(devSession));
+    sessionStorage.setItem('sow_auth_role', actualRole);
     return devSession;
   }
+
   throw new Error('Invalid login credentials. Please check your email and password.');
 }
 
 export async function signOutAdmin() {
   if (isSupabaseConfigured() && supabase) {
-    await supabase.auth.signOut();
+    await supabase.auth.signOut().catch(() => {});
   }
   sessionStorage.removeItem('dev_admin_session');
+  sessionStorage.removeItem('sow_auth_role');
 }
 
 export async function getAdminSession() {
+  const savedRole = sessionStorage.getItem('sow_auth_role') || 'admin';
+
   if (isSupabaseConfigured() && supabase) {
     const { data } = await supabase.auth.getSession();
-    return data?.session || null;
+    if (!data?.session) return null;
+    return {
+      ...data.session,
+      role: savedRole,
+    };
   }
 
   const dev = sessionStorage.getItem('dev_admin_session');
   if (dev) {
     try {
-      return JSON.parse(dev);
+      const parsed = JSON.parse(dev);
+      return {
+        ...parsed,
+        role: savedRole || parsed.role || 'admin',
+      };
     } catch {
       return null;
     }

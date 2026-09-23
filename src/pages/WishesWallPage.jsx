@@ -69,15 +69,7 @@ export default function WishesWallPage() {
       </div>
 
       {/* Header Bar */}
-      <header className="relative z-10 max-w-6xl mx-auto flex items-center justify-between mb-12">
-        <Link
-          to="/#birthday-wishes-section"
-          className="inline-flex items-center gap-2 text-sm text-[#F5F1EA]/60 hover:text-[#B76E79] transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to Story</span>
-        </Link>
-
+      <header className="relative z-10 max-w-6xl mx-auto flex items-center justify-end mb-12">
         <Link
           to="/wish"
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-[#B76E79] to-[#D4AF37] hover:opacity-95 text-white font-medium text-xs shadow-lg transition-all"

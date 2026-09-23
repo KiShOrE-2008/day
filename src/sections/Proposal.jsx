@@ -205,7 +205,7 @@ export default function Proposal() {
     >
       {/* Screen Flash */}
       {screenFlash && (
-        <div className="fixed inset-0 z-50 bg-[#E89CA7]/40 pointer-events-none animate-ping" />
+        <div className="fixed inset-0 z-50 bg-[#E89CA7]/40 pointer-events-none transition-opacity duration-300 animate-fade-in" />
       )}
 
       {/* 3D WebGL Canvas Engine */}
