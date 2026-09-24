@@ -39,3 +39,40 @@ export async function sendProposalNotificationEmail({ answer, note }) {
     return null;
   }
 }
+
+/**
+ * Sends a notification email via FormSubmit whenever a new birthday wish is submitted.
+ */
+export async function sendWishNotificationEmail({ name, email, relationship, message, photoUrl }) {
+  const recipientEmail = import.meta.env.VITE_NOTIFICATION_EMAIL || 'kv.kishorevijay@gmail.com';
+
+  const payload = {
+    _subject: `💌 New Birthday Wish Received from ${name || 'A Friend'}!`,
+    _captcha: 'false',
+    _template: 'table',
+    "Sender Name": name || "Anonymous",
+    "Sender Email": email || "Not provided",
+    "Relationship": relationship || "Friend / Loved One",
+    "Wish Message": message,
+    "Photo Attachment": photoUrl || "No photo attached",
+    "Submitted At": new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
+    "Status": "Pending Approval (Review in Admin Dashboard)"
+  };
+
+  try {
+    const response = await fetch(`https://formsubmit.co/ajax/${recipientEmail}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error sending Wish FormSubmit notification:', error);
+    return null;
+  }
+}

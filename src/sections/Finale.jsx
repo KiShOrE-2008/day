@@ -10,7 +10,7 @@ export default function Finale() {
   const containerRef = useRef(null);
   const contentRef = useRef(null);
   const infinityRef = useRef(null);
-  const [wishCount, setWishCount] = useState(29);
+  const [wishCount, setWishCount] = useState(0);
   const [hasSentWish, setHasSentWish] = useState(false);
 
   useEffect(() => {

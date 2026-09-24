@@ -1,5 +1,6 @@
 import { supabase, isSupabaseConfigured, BUCKET_NAME } from './supabase';
 import { compressImage, validateImageFile } from './imageCompressor';
+import { sendWishNotificationEmail } from './emailService';
 
 // ----------------------------------------------------------------------
 // SAMPLE MOCK WISHES FOR DEV FALLBACK MODE
@@ -161,6 +162,15 @@ export async function submitWish({ name, email, relationship, message, photoFile
       ]);
 
     if (!dbErr) {
+      const photoPublicUrl = photo_path ? getPhotoUrl(photo_path) : null;
+      sendWishNotificationEmail({
+        name: cleanName,
+        email: cleanEmail,
+        relationship: cleanRel,
+        message: cleanMsg,
+        photoUrl: photoPublicUrl,
+      }).catch((err) => console.error('Wish notification email failed:', err));
+
       return { success: true, name: cleanName, message: cleanMsg };
     }
 
@@ -199,6 +209,14 @@ export async function submitWish({ name, email, relationship, message, photoFile
   const list = getLocalWishes();
   list.unshift(newWish);
   saveLocalWishes(list);
+
+  sendWishNotificationEmail({
+    name: cleanName,
+    email: cleanEmail,
+    relationship: cleanRel,
+    message: cleanMsg,
+    photoUrl: localPhotoData ? 'Attached (Base64 image data)' : null,
+  }).catch((err) => console.error('Wish notification email failed:', err));
 
   return newWish;
 }

@@ -8,7 +8,7 @@ gsap.registerPlugin(ScrollTrigger);
 // Single Featured Photo Memory
 const singlePhoto = {
   id: 1,
-  url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80',
+  url: 'https://dqnqnpoldcqaaufludna.supabase.co/storage/v1/object/public/Sow/IMG_20260924_190007.jpg.jpeg',
   title: 'Sowmiya R',
   caption: 'That unforgettable radiant smile — pure joy and endless laughter.',
   date: '04.09.2025',
@@ -24,38 +24,37 @@ export default function Memories() {
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: containerRef.current,
-          start: 'top top',
-          end: '+=150%',
-          scrub: 1.2,
-          pin: true,
+          start: 'top 75%',
+          end: 'bottom 20%',
+          scrub: 1,
         },
       });
 
-      // Bring single photo into tight cinematic scrapbook focus
+      // Bring single photo smoothly into focus as section enters viewport
       tl.fromTo(
         cardRef.current,
         {
-          y: 80,
-          scale: 0.8,
+          y: 60,
+          scale: 0.85,
           opacity: 0,
-          filter: 'blur(12px)',
+          filter: 'blur(10px)',
         },
         {
           y: 0,
           scale: 1,
           opacity: 1,
           filter: 'blur(0px)',
-          duration: 1.5,
-          ease: 'power3.out',
+          duration: 1.2,
+          ease: 'power2.out',
         }
       );
 
-      // Heart pulse effect
+      // Heart pulse entrance
       tl.fromTo(
         centerHeartRef.current,
         { scale: 0, opacity: 0, rotate: -45 },
-        { scale: 1.2, opacity: 1, rotate: 0, duration: 1.5, ease: 'back.out(1.7)' },
-        '-=1'
+        { scale: 1, opacity: 1, rotate: 0, duration: 1, ease: 'back.out(1.7)' },
+        '-=0.6'
       );
     }, containerRef);
 
@@ -90,11 +89,11 @@ export default function Memories() {
           className="relative z-20 w-full max-w-md bg-[#141216]/90 border border-[#B76E79]/40 p-4 sm:p-5 rounded-3xl backdrop-blur-2xl shadow-[0_0_80px_rgba(183,110,121,0.25)] transition-all duration-500 hover:scale-105 group cursor-pointer"
         >
           {/* Polaroid Image Container */}
-          <div className="relative h-72 sm:h-96 rounded-2xl overflow-hidden mb-4 bg-black">
+          <div className="relative h-80 sm:h-[400px] rounded-2xl overflow-hidden mb-4 bg-black">
             <img
               src={singlePhoto.url}
               alt={singlePhoto.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 filter brightness-95 group-hover:brightness-100"
+              className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 filter brightness-95 group-hover:brightness-100"
             />
             <div className="absolute top-3 right-3 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-xs font-mono text-white/90 border border-white/20 flex items-center gap-1.5">
               <Camera className="w-3.5 h-3.5 text-[#B76E79]" />

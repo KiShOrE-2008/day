@@ -83,9 +83,9 @@ export default function LoveLetter() {
         <div ref={photoRef} className="flex flex-col items-center text-center space-y-4">
           <div className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-full overflow-hidden border-2 border-[#B76E79] shadow-2xl p-1 bg-black">
             <img
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80"
+              src="https://dqnqnpoldcqaaufludna.supabase.co/storage/v1/object/public/Sow/IMG_20260924_185035.jpg.jpeg"
               alt="Sowmiya R"
-              className="w-full h-full object-cover rounded-full"
+              className="w-full h-full object-cover object-center rounded-full"
             />
           </div>
           <div className="font-mono text-xs text-[#E89CA7] uppercase tracking-widest">
