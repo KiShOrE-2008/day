@@ -109,8 +109,8 @@ export async function submitWish({ name, email, relationship, message, photoFile
     throw new Error('Please enter a valid email address.');
   }
 
-  if (cleanMsg.length < 5 || cleanMsg.length > 1000) {
-    throw new Error('Message must be between 5 and 1000 characters.');
+  if (cleanMsg.length < 5 || cleanMsg.length > 10000) {
+    throw new Error('Message must be between 5 and 10,000 characters.');
   }
 
   let photo_path = null;

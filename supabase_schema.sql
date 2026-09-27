@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS public.birthday_wishes (
   name TEXT NOT NULL CHECK (char_length(trim(name)) >= 2 AND char_length(name) <= 80),
   email TEXT CHECK (email IS NULL OR char_length(email) <= 100),
   relationship TEXT CHECK (relationship IS NULL OR char_length(relationship) <= 50),
-  message TEXT NOT NULL CHECK (char_length(trim(message)) >= 5 AND char_length(message) <= 1000),
+  message TEXT NOT NULL CHECK (char_length(trim(message)) >= 5 AND char_length(message) <= 10000),
   photo_path TEXT, -- Storage path inside 'birthday-wish-photos' bucket
   approved BOOLEAN NOT NULL DEFAULT false,
   featured BOOLEAN NOT NULL DEFAULT false,

@@ -347,14 +347,14 @@ export default function WishSubmissionPage() {
                 <textarea
                   required
                   rows={5}
-                  maxLength={1000}
+                  maxLength={10000}
                   placeholder="Write something special for her..."
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/15 text-[#F5F1EA] placeholder:text-[#F5F1EA]/30 focus:outline-none focus:border-[#B76E79] focus:ring-1 focus:ring-[#B76E79] transition-all text-sm leading-relaxed resize-none"
                 />
                 <div className="text-right text-[10px] font-mono text-[#F5F1EA]/40 mt-1">
-                  {message.length} / 1000
+                  {message.length.toLocaleString()} / 10,000
                 </div>
               </div>
 
