@@ -191,7 +191,7 @@ export default function WishesWallPage() {
                   key={wish.id}
                   ref={(el) => (cardsRef.current[index] = el)}
                   onClick={() => setSelectedIndex(index)}
-                  className={`break-inside-avoid glass-panel border rounded-3xl p-6 sm:p-7 transition-all duration-500 hover:border-[#B76E79]/60 shadow-2xl cursor-pointer hover:-translate-y-1.5 group relative overflow-hidden ${
+                  className={`break-inside-avoid inline-block w-full glass-panel border rounded-3xl p-6 sm:p-7 transition-all duration-500 hover:border-[#B76E79]/60 shadow-2xl cursor-pointer hover:-translate-y-1.5 group relative overflow-hidden ${
                     wish.featured
                       ? 'border-[#D4AF37]/50 bg-gradient-to-b from-[#D4AF37]/[0.08] via-black/40 to-black/60 shadow-[0_0_40px_rgba(212,175,55,0.2)]'
                       : 'border-white/15 bg-white/[0.03]'

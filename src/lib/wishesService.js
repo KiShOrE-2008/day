@@ -337,6 +337,35 @@ export async function approveWish(id) {
 }
 
 // ----------------------------------------------------------------------
+// 5B. APPROVE ALL PENDING WISHES (ADMIN)
+// ----------------------------------------------------------------------
+export async function approveAllWishes() {
+  if (isSupabaseConfigured() && supabase) {
+    const { error } = await supabase
+      .from('birthday_wishes')
+      .update({ approved: true, approved_at: new Date().toISOString() })
+      .eq('approved', false);
+
+    if (error) {
+      console.error('Approve all wishes error:', error);
+      throw new Error('Failed to approve all wishes.');
+    }
+    return true;
+  }
+
+  // Local fallback
+  const list = getLocalWishes();
+  list.forEach((w) => {
+    if (!w.approved) {
+      w.approved = true;
+      w.approved_at = new Date().toISOString();
+    }
+  });
+  saveLocalWishes(list);
+  return true;
+}
+
+// ----------------------------------------------------------------------
 // 6. REJECT & DELETE WISH (ADMIN)
 // ----------------------------------------------------------------------
 export async function rejectWish(id) {

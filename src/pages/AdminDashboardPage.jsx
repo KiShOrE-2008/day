@@ -16,6 +16,7 @@ import {
   Filter,
   Image as ImageIcon,
   Check,
+  CheckCheck,
   X,
   Clock,
   Mail,
@@ -23,6 +24,7 @@ import {
 import {
   fetchAllWishes,
   approveWish,
+  approveAllWishes,
   rejectWish,
   editWish,
   toggleFeaturedWish,
@@ -32,6 +34,34 @@ import {
   getPhotoUrl
 } from '../lib/wishesService';
 import DynamicImagePlacer from '../components/DynamicImagePlacer';
+
+// Helper component for dynamic text preview with expandable toggle
+function ExpandableWishMessage({ text, maxChars = 320 }) {
+  const [expanded, setExpanded] = useState(false);
+
+  if (!text) return null;
+  const isLong = text.length > maxChars;
+
+  return (
+    <div className="mb-4">
+      <p className="text-sm text-[#F5F1EA]/85 leading-relaxed font-light whitespace-pre-wrap">
+        "{expanded || !isLong ? text : `${text.slice(0, maxChars)}...`}"
+      </p>
+      {isLong && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setExpanded(!expanded);
+          }}
+          className="mt-2 text-xs font-mono text-[#E89CA7] hover:text-white transition-colors underline font-semibold cursor-pointer"
+        >
+          {expanded ? 'Show Less ▲' : 'Read Full Message... ▼'}
+        </button>
+      )}
+    </div>
+  );
+}
 
 export default function AdminDashboardPage() {
   const [session, setSession] = useState(null);
@@ -92,6 +122,28 @@ export default function AdminDashboardPage() {
       loadWishes();
     } catch (err) {
       showToast('error', err.message || 'Failed to approve wish.');
+    }
+  };
+
+  const handleApproveAll = async () => {
+    const unapprovedList = wishes.filter((w) => !w.approved);
+    if (unapprovedList.length === 0) {
+      showToast('success', 'All wishes are already approved! ❤️');
+      return;
+    }
+    if (
+      !window.confirm(
+        `Are you sure you want to approve all ${unapprovedList.length} pending wishes at once?`
+      )
+    )
+      return;
+
+    try {
+      await approveAllWishes();
+      showToast('success', `Successfully approved all ${unapprovedList.length} pending wishes! ❤️`);
+      loadWishes();
+    } catch (err) {
+      showToast('error', err.message || 'Failed to approve all wishes.');
     }
   };
 
@@ -157,6 +209,7 @@ export default function AdminDashboardPage() {
   const totalCount = wishes.length;
   const newCount = wishes.filter((w) => !w.is_read || !w.approved).length;
   const featuredCount = wishes.filter((w) => w.featured).length;
+  const unapprovedCount = wishes.filter((w) => !w.approved).length;
 
   const filteredWishes = wishes.filter((w) => {
     if (filterTab === 'new') return !w.is_read || !w.approved;
@@ -186,6 +239,17 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
+          {unapprovedCount > 0 && (
+            <button
+              onClick={handleApproveAll}
+              className="px-4 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-xs font-mono flex items-center gap-1.5 transition-all shadow-[0_0_20px_rgba(16,185,129,0.25)] font-semibold hover:scale-105 active:scale-95 cursor-pointer"
+              title="Approve all pending wishes"
+            >
+              <CheckCheck className="w-4 h-4" />
+              <span>Approve All ({unapprovedCount})</span>
+            </button>
+          )}
+
           <button
             onClick={loadWishes}
             className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono flex items-center gap-2 transition-colors"
@@ -239,44 +303,74 @@ export default function AdminDashboardPage() {
             </div>
             <div className="text-3xl font-serif text-[#D4AF37] mt-2">{featuredCount}</div>
           </div>
+
+          <div className="bg-[#121212] border border-emerald-500/40 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+            <div className="text-xs font-mono text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+              <CheckCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Pending Approval</span>
+            </div>
+            <div className="flex items-end justify-between mt-2">
+              <div className="text-3xl font-serif text-emerald-300">{unapprovedCount}</div>
+              {unapprovedCount > 0 && (
+                <button
+                  onClick={handleApproveAll}
+                  className="px-3 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/40 border border-emerald-500/50 text-emerald-200 text-[11px] font-mono font-semibold transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                >
+                  Approve All
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-6 border-b border-white/5">
-          <button
-            onClick={() => setFilterTab('all')}
-            className={`px-4 py-2 rounded-xl text-xs font-mono transition-all shrink-0 ${
-              filterTab === 'all'
-                ? 'bg-[#B76E79]/20 border border-[#B76E79]/50 text-[#E89CA7] font-bold'
-                : 'bg-white/5 border border-white/10 text-[#F5F1EA]/60 hover:text-white'
-            }`}
-          >
-            All Wishes ({totalCount})
-          </button>
+        {/* Filter Tabs & Bulk Actions */}
+        <div className="flex items-center justify-between gap-2 overflow-x-auto pb-4 mb-6 border-b border-white/5">
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => setFilterTab('all')}
+              className={`px-4 py-2 rounded-xl text-xs font-mono transition-all shrink-0 ${
+                filterTab === 'all'
+                  ? 'bg-[#B76E79]/20 border border-[#B76E79]/50 text-[#E89CA7] font-bold'
+                  : 'bg-white/5 border border-white/10 text-[#F5F1EA]/60 hover:text-white'
+              }`}
+            >
+              All Wishes ({totalCount})
+            </button>
 
-          <button
-            onClick={() => setFilterTab('new')}
-            className={`px-4 py-2 rounded-xl text-xs font-mono flex items-center gap-2 transition-all shrink-0 ${
-              filterTab === 'new'
-                ? 'bg-amber-500/20 border border-amber-500/50 text-amber-300 font-bold'
-                : 'bg-white/5 border border-white/10 text-[#F5F1EA]/60 hover:text-white'
-            }`}
-          >
-            <Clock className="w-3.5 h-3.5" />
-            <span>New / Unread ({newCount})</span>
-          </button>
+            <button
+              onClick={() => setFilterTab('new')}
+              className={`px-4 py-2 rounded-xl text-xs font-mono flex items-center gap-2 transition-all shrink-0 ${
+                filterTab === 'new'
+                  ? 'bg-amber-500/20 border border-amber-500/50 text-amber-300 font-bold'
+                  : 'bg-white/5 border border-white/10 text-[#F5F1EA]/60 hover:text-white'
+              }`}
+            >
+              <Clock className="w-3.5 h-3.5" />
+              <span>New / Unread ({newCount})</span>
+            </button>
 
-          <button
-            onClick={() => setFilterTab('featured')}
-            className={`px-4 py-2 rounded-xl text-xs font-mono flex items-center gap-2 transition-all shrink-0 ${
-              filterTab === 'featured'
-                ? 'bg-[#D4AF37]/20 border border-[#D4AF37]/50 text-[#D4AF37] font-bold'
-                : 'bg-white/5 border border-white/10 text-[#F5F1EA]/60 hover:text-white'
-            }`}
-          >
-            <Star className="w-3.5 h-3.5 fill-current" />
-            <span>Featured ({featuredCount})</span>
-          </button>
+            <button
+              onClick={() => setFilterTab('featured')}
+              className={`px-4 py-2 rounded-xl text-xs font-mono flex items-center gap-2 transition-all shrink-0 ${
+                filterTab === 'featured'
+                  ? 'bg-[#D4AF37]/20 border border-[#D4AF37]/50 text-[#D4AF37] font-bold'
+                  : 'bg-white/5 border border-white/10 text-[#F5F1EA]/60 hover:text-white'
+              }`}
+            >
+              <Star className="w-3.5 h-3.5 fill-current" />
+              <span>Featured ({featuredCount})</span>
+            </button>
+          </div>
+
+          {unapprovedCount > 0 && (
+            <button
+              onClick={handleApproveAll}
+              className="px-4 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-xs font-mono flex items-center gap-1.5 transition-all font-semibold shrink-0 hover:scale-105 active:scale-95 cursor-pointer shadow-md"
+            >
+              <CheckCheck className="w-3.5 h-3.5" />
+              <span>Approve All Pending ({unapprovedCount})</span>
+            </button>
+          )}
         </div>
 
         {/* Error Alert */}
@@ -299,14 +393,14 @@ export default function AdminDashboardPage() {
             <p className="text-xs text-[#F5F1EA]/40 mt-1">Birthday notes from loved ones will appear here!</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="columns-1 md:columns-2 gap-6 space-y-6">
             {filteredWishes.map((wish) => {
               const photoUrl = getPhotoUrl(wish.photo_path);
 
               return (
                 <div
                   key={wish.id}
-                  className={`bg-[#121212] border rounded-3xl p-6 transition-all flex flex-col justify-between shadow-xl ${
+                  className={`break-inside-avoid inline-block w-full bg-[#121212] border rounded-3xl p-6 transition-all shadow-xl ${
                     !wish.is_read
                       ? 'border-amber-500/40 bg-amber-500/[0.03]'
                       : wish.featured
@@ -366,10 +460,8 @@ export default function AdminDashboardPage() {
                       </div>
                     </div>
 
-                    {/* Message Body */}
-                    <p className="text-sm text-[#F5F1EA]/85 leading-relaxed font-light mb-4 whitespace-pre-wrap">
-                      "{wish.message}"
-                    </p>
+                    {/* Expandable Message Body */}
+                    <ExpandableWishMessage text={wish.message} maxChars={340} />
 
                     {/* Photo Thumbnail if present */}
                     {photoUrl && (
