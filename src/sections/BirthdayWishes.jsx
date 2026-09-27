@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 import { Heart, Star, Quote, ArrowRight, Maximize2, Sparkles } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { fetchFeaturedWishes } from '../lib/wishesService';
+import { fetchFeaturedWishes, getPhotoUrl } from '../lib/wishesService';
 import WishDetailModal from '../components/WishDetailModal';
+import DynamicImagePlacer from '../components/DynamicImagePlacer';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -131,6 +132,8 @@ export default function BirthdayWishes() {
           ) : wishes.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10 relative z-10">
               {wishes.map((wish, idx) => {
+                const photoUrl = getPhotoUrl(wish.photo_path);
+
                 return (
                   <div
                     key={wish.id}
@@ -142,11 +145,23 @@ export default function BirthdayWishes() {
                     <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-white/10 to-transparent rounded-bl-full pointer-events-none opacity-0 group-hover/card:opacity-100 transition-opacity duration-500" />
 
                     {/* Expand Hint Icon */}
-                    <div className="absolute top-4 right-4 opacity-0 group-hover/card:opacity-100 transition-opacity bg-black/60 p-2 rounded-full border border-white/20 text-[#E89CA7] backdrop-blur-md">
+                    <div className="absolute top-4 right-4 z-20 opacity-0 group-hover/card:opacity-100 transition-opacity bg-black/60 p-2 rounded-full border border-white/20 text-[#E89CA7] backdrop-blur-md">
                       <Maximize2 className="w-3.5 h-3.5" />
                     </div>
 
                     <div>
+                      {/* Photo if present */}
+                      {photoUrl && (
+                        <div className="mb-4">
+                          <DynamicImagePlacer
+                            src={photoUrl}
+                            alt={`Photo from ${wish.name}`}
+                            maxHeight="max-h-56"
+                            rounded="rounded-2xl"
+                          />
+                        </div>
+                      )}
+
                       <Quote className="w-6 h-6 text-[#B76E79]/50 mb-3" />
 
                       <p className="text-sm text-[#F5F1EA]/90 font-light leading-relaxed mb-6 whitespace-pre-wrap line-clamp-4">

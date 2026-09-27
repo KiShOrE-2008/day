@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { submitWish } from '../lib/wishesService';
 import { validateImageFile } from '../lib/imageCompressor';
+import DynamicImagePlacer from '../components/DynamicImagePlacer';
 
 export default function WishSubmissionPage() {
   const [name, setName] = useState('');
@@ -365,25 +366,23 @@ export default function WishSubmissionPage() {
                 </label>
 
                 {photoPreview ? (
-                  /* 3D SCANNED ATTACHED PHOTO CARD */
+                  /* 3D SCANNED ATTACHED PHOTO CARD WITH DYNAMIC PLACER */
                   <div className="relative rounded-2xl overflow-hidden border border-[#B76E79]/60 bg-black/80 group/photo p-3 transition-all duration-500 shadow-[0_0_40px_rgba(183,110,121,0.25)] animate-fade-in">
-                    <div className="relative h-56 sm:h-64 rounded-xl overflow-hidden">
-                      <img
+                    <div className="relative rounded-xl overflow-hidden">
+                      <DynamicImagePlacer
                         src={photoPreview}
                         alt="Photo preview"
-                        className={`w-full h-full object-cover rounded-xl transition-transform duration-700 ${
-                          isScanningPhoto ? 'scale-110 filter brightness-125' : 'group-hover/photo:scale-105'
-                        }`}
+                        maxHeight="max-h-72"
+                        rounded="rounded-xl"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/30 pointer-events-none" />
 
                       {/* Laser Scanner Beam Line Animation */}
                       {isScanningPhoto && (
-                        <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#00ff66] to-transparent shadow-[0_0_20px_#00ff66] animate-pulse top-0 animate-bounce" />
+                        <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#00ff66] to-transparent shadow-[0_0_20px_#00ff66] animate-pulse top-0 animate-bounce z-30" />
                       )}
 
                       {/* Status & Processing Badge */}
-                      <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-black/80 border border-[#00ff66]/50 text-[#00ff66] text-xs font-mono backdrop-blur-md shadow-md">
+                      <div className="absolute top-3 left-3 z-30 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-black/80 border border-[#00ff66]/50 text-[#00ff66] text-xs font-mono backdrop-blur-md shadow-md">
                         {isScanningPhoto ? (
                           <>
                             <Scan className="w-3.5 h-3.5 animate-spin text-[#00ff66]" />
@@ -401,7 +400,7 @@ export default function WishSubmissionPage() {
                       <button
                         type="button"
                         onClick={handleRemovePhoto}
-                        className="absolute top-3 right-3 bg-black/80 hover:bg-red-600/90 text-white p-2 rounded-full backdrop-blur-md transition-all transform hover:rotate-90 hover:scale-110 border border-white/20 cursor-pointer shadow-lg"
+                        className="absolute top-3 right-3 z-30 bg-black/80 hover:bg-red-600/90 text-white p-2 rounded-full backdrop-blur-md transition-all transform hover:rotate-90 hover:scale-110 border border-white/20 cursor-pointer shadow-lg"
                         title="Remove photo"
                       >
                         <X className="w-4 h-4" />

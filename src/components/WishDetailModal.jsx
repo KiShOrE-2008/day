@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Star, Quote, Calendar, User, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getPhotoUrl } from '../lib/wishesService';
+import DynamicImagePlacer from './DynamicImagePlacer';
 
 export default function WishDetailModal({
   wish,
@@ -141,11 +142,12 @@ export default function WishDetailModal({
           <div className="relative z-10 overflow-y-auto pr-1 space-y-5 custom-scrollbar my-2">
             {/* Photo if present */}
             {photoUrl && (
-              <div className="rounded-2xl overflow-hidden border border-white/20 bg-black/60 max-h-[340px] flex items-center justify-center shadow-xl">
-                <img
+              <div className="mb-2">
+                <DynamicImagePlacer
                   src={photoUrl}
                   alt={`Photo shared by ${wish.name}`}
-                  className="w-full h-full max-h-[340px] object-contain rounded-2xl"
+                  maxHeight="max-h-[380px]"
+                  rounded="rounded-2xl"
                 />
               </div>
             )}

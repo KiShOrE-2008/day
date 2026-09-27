@@ -31,6 +31,7 @@ import {
   signOutAdmin,
   getPhotoUrl
 } from '../lib/wishesService';
+import DynamicImagePlacer from '../components/DynamicImagePlacer';
 
 export default function AdminDashboardPage() {
   const [session, setSession] = useState(null);
@@ -372,11 +373,12 @@ export default function AdminDashboardPage() {
 
                     {/* Photo Thumbnail if present */}
                     {photoUrl && (
-                      <div className="mb-4 rounded-xl overflow-hidden border border-white/10 max-h-48 bg-black/40">
-                        <img
+                      <div className="mb-4">
+                        <DynamicImagePlacer
                           src={photoUrl}
                           alt={`Upload by ${wish.name}`}
-                          className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
+                          maxHeight="max-h-64"
+                          rounded="rounded-xl"
                         />
                       </div>
                     )}

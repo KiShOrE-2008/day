@@ -4,6 +4,7 @@ import { Heart, Sparkles, ArrowLeft, Star, PlusCircle, Quote, Maximize2, Message
 import gsap from 'gsap';
 import { fetchApprovedWishes, getPhotoUrl } from '../lib/wishesService';
 import WishDetailModal from '../components/WishDetailModal';
+import DynamicImagePlacer from '../components/DynamicImagePlacer';
 
 export default function WishesWallPage() {
   const [wishes, setWishes] = useState([]);
@@ -206,13 +207,13 @@ export default function WishesWallPage() {
 
                   {/* Photo attachment if available */}
                   {photoUrl && (
-                    <div className="mb-5 rounded-2xl overflow-hidden border border-white/15 max-h-72 bg-black/60 relative group-hover:border-[#B76E79]/40 transition-colors">
-                      <img
+                    <div className="mb-5">
+                      <DynamicImagePlacer
                         src={photoUrl}
                         alt={`Photo with wish from ${wish.name}`}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                        maxHeight="max-h-80"
+                        rounded="rounded-2xl"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
                     </div>
                   )}
 
