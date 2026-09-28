@@ -104,7 +104,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<PasswordGate><HomeStory /></PasswordGate>} />
           <Route path="/wish" element={<WishSubmissionPage />} />
-          <Route path="/wishes" element={<WishesWallPage />} />
+          <Route path="/wishes" element={<PasswordGate><WishesWallPage /></PasswordGate>} />
           <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route path="/admin" element={<AdminDashboardPage />} />
         </Routes>

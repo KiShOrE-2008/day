@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Sparkles, ArrowLeft, Star, PlusCircle, Quote, Maximize2, MessageSquare, PartyPopper } from 'lucide-react';
+import { Heart, Sparkles, ArrowLeft, Star, PlusCircle, Quote, Maximize2, MessageSquare, PartyPopper, BookOpen, Download, Loader2 } from 'lucide-react';
 import gsap from 'gsap';
 import { fetchApprovedWishes, getPhotoUrl } from '../lib/wishesService';
 import WishDetailModal from '../components/WishDetailModal';
 import DynamicImagePlacer from '../components/DynamicImagePlacer';
+import { generateWishesPDF } from '../utils/pdfExport';
 
 export default function WishesWallPage() {
   const [wishes, setWishes] = useState([]);
@@ -12,6 +13,8 @@ export default function WishesWallPage() {
   const [fetchError, setFetchError] = useState(null);
   const [activeFilter, setActiveFilter] = useState('ALL');
   const [selectedIndex, setSelectedIndex] = useState(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [pdfProgress, setPdfProgress] = useState('');
   const cardsRef = useRef([]);
   const heroRef = useRef(null);
 
@@ -66,12 +69,30 @@ export default function WishesWallPage() {
     return w.relationship === activeFilter;
   });
 
+  // Reset cards ref array on each render pass
+  cardsRef.current = [];
+
   const selectedWish = selectedIndex !== null ? filteredWishes[selectedIndex] : null;
   const handlePrev = selectedIndex > 0 ? () => setSelectedIndex(selectedIndex - 1) : null;
   const handleNext =
     selectedIndex !== null && selectedIndex < filteredWishes.length - 1
       ? () => setSelectedIndex(selectedIndex + 1)
       : null;
+
+  const handleDownloadPDF = async () => {
+    if (!wishes || wishes.length === 0) return;
+    setIsGeneratingPDF(true);
+    setPdfProgress('Preparing PDF...');
+    try {
+      await generateWishesPDF(wishes, (msg) => setPdfProgress(msg));
+    } catch (err) {
+      console.error('PDF export error:', err);
+      alert('Could not generate PDF memory book: ' + err.message);
+    } finally {
+      setIsGeneratingPDF(false);
+      setPdfProgress('');
+    }
+  };
 
   return (
     <div className="relative min-h-screen bg-[#080808] text-[#F5F1EA] selection:bg-[#B76E79]/30 selection:text-white px-4 py-8 sm:py-12 md:py-16 overflow-x-hidden">
@@ -83,14 +104,40 @@ export default function WishesWallPage() {
       </div>
 
       {/* Top Header Navigation */}
-      <header className="relative z-20 max-w-6xl mx-auto flex items-center justify-end mb-10 sm:mb-14">
+      <header className="relative z-20 max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-4 mb-10 sm:mb-14">
         <Link
-          to="/wish"
-          className="group relative inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-[#B76E79] to-[#E89CA7] text-white font-medium text-xs tracking-wider uppercase shadow-[0_0_25px_rgba(183,110,121,0.5)] hover:shadow-[0_0_40px_rgba(232,156,167,0.8)] hover:scale-105 active:scale-95 transition-all duration-300"
+          to="/"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-panel border border-white/10 text-[#F5F1EA]/70 text-xs hover:text-white hover:border-white/30 transition-all"
         >
-          <PlusCircle className="w-4 h-4 animate-pulse" />
-          <span>Leave Her A Wish ❤️</span>
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Back to Story</span>
         </Link>
+
+        <div className="flex items-center gap-3">
+          {wishes.length > 0 && (
+            <button
+              onClick={handleDownloadPDF}
+              disabled={isGeneratingPDF}
+              className="group relative inline-flex items-center gap-2 px-4 py-2.5 rounded-full glass-panel border border-[#B76E79]/40 text-[#E89CA7] hover:text-white hover:border-[#B76E79] font-medium text-xs tracking-wider uppercase shadow-lg hover:shadow-[0_0_25px_rgba(183,110,121,0.4)] hover:scale-105 active:scale-95 disabled:opacity-50 transition-all duration-300 cursor-pointer"
+              title="Download all wishes & photos as a PDF memory book"
+            >
+              {isGeneratingPDF ? (
+                <Loader2 className="w-4 h-4 text-[#B76E79] animate-spin" />
+              ) : (
+                <BookOpen className="w-4 h-4 text-[#B76E79]" />
+              )}
+              <span>{isGeneratingPDF ? pdfProgress || 'Generating PDF...' : 'Download PDF Keepsake 📖'}</span>
+            </button>
+          )}
+
+          <Link
+            to="/wish"
+            className="group relative inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-[#B76E79] to-[#E89CA7] text-white font-medium text-xs tracking-wider uppercase shadow-[0_0_25px_rgba(183,110,121,0.5)] hover:shadow-[0_0_40px_rgba(232,156,167,0.8)] hover:scale-105 active:scale-95 transition-all duration-300"
+          >
+            <PlusCircle className="w-4 h-4 animate-pulse" />
+            <span>Leave Her A Wish ❤️</span>
+          </Link>
+        </div>
       </header>
 
       {/* Hero Header & Title */}
@@ -181,8 +228,8 @@ export default function WishesWallPage() {
             </div>
           </div>
         ) : (
-          /* Masonry Wish Cards Grid */
-          <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
+          /* Wish Cards Grid */
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
             {filteredWishes.map((wish, index) => {
               const photoUrl = getPhotoUrl(wish.photo_path);
 
@@ -191,7 +238,7 @@ export default function WishesWallPage() {
                   key={wish.id}
                   ref={(el) => (cardsRef.current[index] = el)}
                   onClick={() => setSelectedIndex(index)}
-                  className={`break-inside-avoid inline-block w-full glass-panel border rounded-3xl p-6 sm:p-7 transition-all duration-500 hover:border-[#B76E79]/60 shadow-2xl cursor-pointer hover:-translate-y-1.5 group relative overflow-hidden ${
+                  className={`w-full glass-panel border rounded-3xl p-6 sm:p-7 transition-all duration-500 hover:border-[#B76E79]/60 shadow-2xl cursor-pointer hover:-translate-y-1.5 group relative overflow-hidden ${
                     wish.featured
                       ? 'border-[#D4AF37]/50 bg-gradient-to-b from-[#D4AF37]/[0.08] via-black/40 to-black/60 shadow-[0_0_40px_rgba(212,175,55,0.2)]'
                       : 'border-white/15 bg-white/[0.03]'
@@ -229,7 +276,7 @@ export default function WishesWallPage() {
                   <Quote className="w-6 h-6 text-[#B76E79]/40 mb-3" />
 
                   {/* Message Content */}
-                  <p className="font-sans-clean text-sm sm:text-base text-[#F5F1EA]/90 font-light leading-relaxed mb-6 whitespace-pre-wrap line-clamp-5 italic">
+                  <p className="font-sans-clean text-sm sm:text-base text-[#F5F1EA]/90 font-light leading-relaxed mb-6 whitespace-pre-wrap italic">
                     “{wish.message}”
                   </p>
 

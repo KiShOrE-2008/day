@@ -13,6 +13,11 @@ export default function WishDetailModal({
   totalCount,
 }) {
   useEffect(() => {
+    if (!wish) {
+      document.body.style.overflow = '';
+      return;
+    }
+
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
         onClose();
@@ -24,14 +29,14 @@ export default function WishDetailModal({
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    // Lock scroll when modal is open
+    // Lock scroll only when modal is actively displaying a wish
     document.body.style.overflow = 'hidden';
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = '';
     };
-  }, [onClose, onPrev, onNext]);
+  }, [wish, onClose, onPrev, onNext]);
 
   if (!wish) return null;
 

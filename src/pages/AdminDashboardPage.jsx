@@ -20,6 +20,8 @@ import {
   X,
   Clock,
   Mail,
+  BookOpen,
+  Loader2,
 } from 'lucide-react';
 import {
   fetchAllWishes,
@@ -34,31 +36,17 @@ import {
   getPhotoUrl
 } from '../lib/wishesService';
 import DynamicImagePlacer from '../components/DynamicImagePlacer';
+import { generateWishesPDF } from '../utils/pdfExport';
 
-// Helper component for dynamic text preview with expandable toggle
-function ExpandableWishMessage({ text, maxChars = 320 }) {
-  const [expanded, setExpanded] = useState(false);
-
+// Helper component for displaying full wish message
+function ExpandableWishMessage({ text }) {
   if (!text) return null;
-  const isLong = text.length > maxChars;
 
   return (
     <div className="mb-4">
       <p className="text-sm text-[#F5F1EA]/85 leading-relaxed font-light whitespace-pre-wrap">
-        "{expanded || !isLong ? text : `${text.slice(0, maxChars)}...`}"
+        "{text}"
       </p>
-      {isLong && (
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            setExpanded(!expanded);
-          }}
-          className="mt-2 text-xs font-mono text-[#E89CA7] hover:text-white transition-colors underline font-semibold cursor-pointer"
-        >
-          {expanded ? 'Show Less ▲' : 'Read Full Message... ▼'}
-        </button>
-      )}
     </div>
   );
 }
@@ -73,8 +61,28 @@ export default function AdminDashboardPage() {
 
   const [filterTab, setFilterTab] = useState('all'); // 'all' | 'new' | 'featured'
   const [editingWish, setEditingWish] = useState(null); // wish object being edited
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   const navigate = useNavigate();
+
+  const handleDownloadPDF = async () => {
+    const approvedWishes = wishes.filter((w) => w.approved);
+    const targetWishes = approvedWishes.length > 0 ? approvedWishes : wishes;
+    if (targetWishes.length === 0) {
+      showToast('error', 'No wishes available to export PDF.');
+      return;
+    }
+    setIsGeneratingPDF(true);
+    try {
+      await generateWishesPDF(targetWishes, (msg) => console.log(msg));
+      showToast('success', 'PDF keepsake downloaded successfully! 📖');
+    } catch (err) {
+      console.error(err);
+      showToast('error', 'Failed to generate PDF: ' + err.message);
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
 
   // 1. Verify Auth Session
   useEffect(() => {
@@ -257,6 +265,20 @@ export default function AdminDashboardPage() {
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loadingData ? 'animate-spin' : ''}`} />
             <span className="hidden sm:inline">Refresh</span>
+          </button>
+
+          <button
+            onClick={handleDownloadPDF}
+            disabled={isGeneratingPDF}
+            className="px-4 py-2 rounded-xl bg-[#B76E79]/20 hover:bg-[#B76E79]/30 border border-[#B76E79]/40 text-[#E89CA7] text-xs font-mono flex items-center gap-1.5 transition-all shadow-md font-semibold hover:scale-105 active:scale-95 disabled:opacity-50 cursor-pointer"
+            title="Download PDF memory book"
+          >
+            {isGeneratingPDF ? (
+              <Loader2 className="w-4 h-4 text-[#B76E79] animate-spin" />
+            ) : (
+              <BookOpen className="w-4 h-4 text-[#B76E79]" />
+            )}
+            <span>{isGeneratingPDF ? 'Generating...' : 'Export PDF 📖'}</span>
           </button>
 
           <Link

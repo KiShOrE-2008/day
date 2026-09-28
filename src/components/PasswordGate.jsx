@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Link } from 'react-router-dom';
 
 const CORRECT_PASSWORD = import.meta.env.VITE_SITE_PASSWORD || '290907';
 const SESSION_KEY = 'sow_auth';
@@ -97,7 +96,7 @@ function TypewriterText({ text, speed = 50, delay = 150, onComplete }) {
   );
 }
 
-export default function PasswordGate({ children, isMainPageLocked = true }) {
+export default function PasswordGate({ children }) {
   const [unlocked, setUnlocked] = useState(() => {
     try {
       const params = new URLSearchParams(window.location.search);
@@ -117,7 +116,6 @@ export default function PasswordGate({ children, isMainPageLocked = true }) {
   const [titleDone, setTitleDone] = useState(false);
   const [activeKey, setActiveKey] = useState(null);
   const [showBurst, setShowBurst] = useState(false);
-  const [showPinPad, setShowPinPad] = useState(!isMainPageLocked);
 
   // Generate confetti burst items
   const [burstParticles] = useState(() => {
@@ -627,76 +625,6 @@ export default function PasswordGate({ children, isMainPageLocked = true }) {
           margin: -0.5rem 0;
         }
 
-        /* Action buttons & navigation for locked mode */
-        .pg-actions-group {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 0.85rem;
-          width: min(320px, 90vw);
-          margin-top: -0.25rem;
-        }
-
-        .pg-btn {
-          width: 100%;
-          padding: 0.85rem 1.25rem;
-          border-radius: 9999px;
-          font-family: 'Inter', sans-serif;
-          font-size: 0.9rem;
-          font-weight: 500;
-          letter-spacing: 0.03em;
-          text-align: center;
-          text-decoration: none;
-          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.5rem;
-        }
-
-        .pg-btn-primary {
-          background: linear-gradient(135deg, #B76E79 0%, #E89CA7 100%);
-          color: #080808;
-          font-weight: 600;
-          box-shadow: 0 4px 20px rgba(183, 110, 121, 0.35);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        .pg-btn-primary:hover {
-          transform: translateY(-2px) scale(1.02);
-          box-shadow: 0 6px 25px rgba(183, 110, 121, 0.5);
-          color: #000000;
-        }
-
-        .pg-btn-secondary {
-          background: rgba(255, 255, 255, 0.04);
-          border: 1px solid rgba(183, 110, 121, 0.3);
-          color: #F5F1EA;
-        }
-        .pg-btn-secondary:hover {
-          background: rgba(183, 110, 121, 0.12);
-          border-color: rgba(183, 110, 121, 0.6);
-          transform: translateY(-2px);
-          color: #ffffff;
-        }
-
-        .pg-pin-toggle-btn {
-          background: transparent;
-          border: none;
-          color: rgba(160, 154, 147, 0.7);
-          font-family: 'Fira Code', monospace;
-          font-size: 0.75rem;
-          letter-spacing: 0.05em;
-          cursor: pointer;
-          margin-top: 0.25rem;
-          padding: 0.4rem 0.8rem;
-          border-radius: 6px;
-          transition: color 0.3s, background 0.3s;
-        }
-        .pg-pin-toggle-btn:hover {
-          color: #B76E79;
-          background: rgba(183, 110, 121, 0.08);
-        }
-
         /* Unlocking transformation */
         .pg-unlocking .pg-icon-wrap {
           animation: none;
@@ -731,138 +659,106 @@ export default function PasswordGate({ children, isMainPageLocked = true }) {
         ))}
 
         <div className="pg-card">
-          {showPinPad && (
-            <>
-              {/* Lock Icon & Shockwave Ring */}
-              <div className="pg-icon-wrap">
-                <div className="pg-shockwave" />
-                <svg className="pg-lock-svg" viewBox="0 0 24 24">
-                  <path className="pg-shackle" d="M7 11V7a5 5 0 0 1 10 0v4" />
-                  <rect x="3" y="11" width="18" height="11" rx="2" />
-                  <circle
-                    cx="12"
-                    cy="16"
-                    r="1.5"
-                    fill={status === 'unlocking' ? '#00ff66' : 'rgba(183,110,121,0.5)'}
-                    stroke="none"
-                  />
-                </svg>
+          {/* Lock Icon & Shockwave Ring */}
+          <div className="pg-icon-wrap">
+            <div className="pg-shockwave" />
+            <svg className="pg-lock-svg" viewBox="0 0 24 24">
+              <path className="pg-shackle" d="M7 11V7a5 5 0 0 1 10 0v4" />
+              <rect x="3" y="11" width="18" height="11" rx="2" />
+              <circle
+                cx="12"
+                cy="16"
+                r="1.5"
+                fill={status === 'unlocking' ? '#00ff66' : 'rgba(183,110,121,0.5)'}
+                stroke="none"
+              />
+            </svg>
 
-                {/* Explosive Confetti / Heart Burst */}
-                {showBurst && (
-                  <div className="pg-burst-container">
-                    {burstParticles.map(p => (
-                      <BurstParticle
-                        key={p.id}
-                        angle={p.angle}
-                        distance={p.distance}
-                        size={p.size}
-                        symbol={p.symbol}
-                        color={p.color}
-                        delay={p.delay}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="pg-header">
-                <p className="pg-eyebrow">
-                  <TypewriterText text="Private Access" speed={40} delay={200} />
-                </p>
-                <h1 className="pg-title">
-                  <TypewriterText
-                    text="For Her Eyes Only"
-                    speed={70}
-                    delay={600}
-                    onComplete={() => setTitleDone(true)}
-                  />
-                </h1>
-                <p className="pg-subtitle">
-                  {titleDone && (
-                    <TypewriterText
-                      text="Enter the secret code to continue"
-                      speed={35}
-                      delay={100}
-                    />
-                  )}
-                </p>
-              </div>
-            </>
-          )}
-
-          {!showPinPad ? (
-            <div className="pg-actions-group">
-              <Link to="/wish" className="pg-btn pg-btn-primary">
-                ✨ Write a Birthday Wish
-              </Link>
-              <Link to="/wishes" className="pg-btn pg-btn-secondary">
-                💌 View Wishes Wall
-              </Link>
-            </div>
-          ) : (
-            <>
-              {/* PIN dots */}
-              <div ref={dotsRef} className="pg-dots" aria-label="PIN entry">
-                {Array.from({ length: PIN_LENGTH }, (_, i) => (
-                  <PinDot
-                    key={i}
-                    filled={i < pin.length}
-                    isActive={i === pin.length}
-                    isUnlocked={status === 'unlocking'}
+            {/* Explosive Confetti / Heart Burst */}
+            {showBurst && (
+              <div className="pg-burst-container">
+                {burstParticles.map(p => (
+                  <BurstParticle
+                    key={p.id}
+                    angle={p.angle}
+                    distance={p.distance}
+                    size={p.size}
+                    symbol={p.symbol}
+                    color={p.color}
+                    delay={p.delay}
                   />
                 ))}
               </div>
+            )}
+          </div>
 
-              {/* Status hint */}
-              <p
-                className={`pg-hint ${
-                  status === 'wrong'
-                    ? 'pg-hint--wrong'
-                    : status === 'unlocking'
-                    ? 'pg-hint--unlock'
-                    : 'pg-hint--idle'
-                }`}
-              >
-                {status === 'wrong'
-                  ? 'Incorrect code — try again'
-                  : status === 'unlocking'
-                  ? '✦ ACCESS GRANTED — WELCOME SOWMIYA ✦'
-                  : '\u00A0'}
-              </p>
-
-              <div className="pg-divider" />
-
-              {/* Numpad */}
-              <div className="pg-numpad" role="group" aria-label="Number pad">
-                {numpadRows.map((row, ri) =>
-                  row.map((val, ci) =>
-                    val === '' ? (
-                      <button key={`${ri}-${ci}`} className="pg-key pg-key-empty" disabled aria-hidden="true" />
-                    ) : (
-                      <Key
-                        key={`${ri}-${ci}`}
-                        value={val}
-                        onClick={handleKey}
-                        isPressed={activeKey === val}
-                      />
-                    )
-                  )
-                )}
-              </div>
-
-              {isMainPageLocked && (
-                <button
-                  type="button"
-                  onClick={() => setShowPinPad(false)}
-                  className="pg-pin-toggle-btn"
-                  style={{ marginTop: '0.5rem' }}
-                >
-                  ← Back to Wish Options
-                </button>
+          <div className="pg-header">
+            <p className="pg-eyebrow">
+              <TypewriterText text="Private Access" speed={40} delay={200} />
+            </p>
+            <h1 className="pg-title">
+              <TypewriterText
+                text="For Her Eyes Only"
+                speed={70}
+                delay={800}
+                onComplete={() => setTitleDone(true)}
+              />
+            </h1>
+            <p className="pg-subtitle">
+              {titleDone && (
+                <TypewriterText text="Enter the secret code to continue" speed={35} delay={100} />
               )}
-            </>
-          )}
+            </p>
+          </div>
+
+          {/* PIN dots */}
+          <div ref={dotsRef} className="pg-dots" aria-label="PIN entry">
+            {Array.from({ length: PIN_LENGTH }, (_, i) => (
+              <PinDot
+                key={i}
+                filled={i < pin.length}
+                isActive={i === pin.length}
+                isUnlocked={status === 'unlocking'}
+              />
+            ))}
+          </div>
+
+          {/* Status hint */}
+          <p
+            className={`pg-hint ${
+              status === 'wrong'
+                ? 'pg-hint--wrong'
+                : status === 'unlocking'
+                ? 'pg-hint--unlock'
+                : 'pg-hint--idle'
+            }`}
+          >
+            {status === 'wrong'
+              ? 'Incorrect code — try again'
+              : status === 'unlocking'
+              ? '✦ ACCESS GRANTED — WELCOME SOWMIYA ✦'
+              : '\u00A0'}
+          </p>
+
+          <div className="pg-divider" />
+
+          {/* Numpad */}
+          <div className="pg-numpad" role="group" aria-label="Number pad">
+            {numpadRows.map((row, ri) =>
+              row.map((val, ci) =>
+                val === '' ? (
+                  <button key={`${ri}-${ci}`} className="pg-key pg-key-empty" disabled aria-hidden="true" />
+                ) : (
+                  <Key
+                    key={`${ri}-${ci}`}
+                    value={val}
+                    onClick={handleKey}
+                    isPressed={activeKey === val}
+                  />
+                )
+              )
+            )}
+          </div>
         </div>
       </div>
     </>

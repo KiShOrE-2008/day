@@ -26,6 +26,31 @@ canvas {
   color: #fff;
 }
 
+/* Custom Rose-Gold Dark Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #080808;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(183, 110, 121, 0.45);
+  border-radius: 9999px;
+  border: 2px solid #080808;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(232, 156, 167, 0.85);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(183, 110, 121, 0.45) #080808;
+}
+
 /* The 3D world is intentionally visible through the narrative sections. */
 .story-3d-mode main > section {
   background-color: transparent !important;
